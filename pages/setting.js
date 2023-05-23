@@ -53,11 +53,11 @@ const Header = () => {
               <h2>Home</h2>
             </Link>
           </div>
-          {/* <div className="p-3">
+          <div className="p-3">
             <Link href="/setting">
               <h2>Setting</h2>
             </Link>
-          </div> */}
+          </div>
         </div>
       </div>
     </div>
