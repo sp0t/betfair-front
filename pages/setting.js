@@ -6,7 +6,37 @@ import { useEffect } from "react";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Image from "next/image";
-import { Header } from "./../component/header";
+// import { Header } from "./../component/header";
+
+const Header = () => {
+  return(
+    <div className='h-20 bg-slate-800'>
+      <div className='flex justify-between pl-24 pt-6 h-full'>
+        <div className='text-rose-600 hover:text-rose-700 text-4xl font-bold'>
+          <h1>Betfair-bot</h1>
+        </div>
+        <div className='flex pr-20 text-gray-400 text-2xl'>
+          <div className="p-3">
+            <Link href="/">
+              <h2 className=" hover:text-white">Home</h2>
+            </Link>
+          </div>
+          <div className="p-3">
+            <Link href="/setting">
+              <h2 className=" hover:text-white">Setting</h2>
+            </Link>
+          </div>
+          {/* <div className="p-3">
+            <Link href="/setting">
+              <h2>Authentication</h2>
+            </Link>
+          </div> */}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 
 export default function Setting() {
   const [mornitorData, setMornitorData] = useState([]);
@@ -90,7 +120,7 @@ export default function Setting() {
     setLeagueBtids(tmp)
   }
 
-  const removeSport = async (index, name) => {
+  const removeSport = React.useCallback(async (index, name) => {
     var temp = JSON.parse(JSON.stringify(mornitorData));
 
     try {
@@ -101,7 +131,7 @@ export default function Setting() {
     } catch (error) {
       console.error(error);
     }
-  }
+  }, [mornitorData])
 
   const addMornitor = React.useCallback(async() => {
 
@@ -118,8 +148,6 @@ export default function Setting() {
         return;
       }
     }
-
-    alert(leagueBtids)
 
     if (leagueBtids.length == 0) {
       toast.warn(`Please check competitions for ${sportBtname}.`);
@@ -166,7 +194,7 @@ export default function Setting() {
       console.error(error);
     } 
 
-  },[sportName, sportBtname, sportPsname, leagueBtids, leaguePsids])
+  },[mornitorData, sportName, sportBtname, sportPsname, leagueBtids, leaguePsids])
 
   return (
     <>
@@ -203,7 +231,7 @@ export default function Setting() {
                   <div className="h-[445px] overflow-y-auto p-2 bg-blue-50 rounded-lg">
                     {
                       Object.entries(leagueBt).map(([key, value]) => (
-                      <div className="p-2 mb-2 text-blue-800 rounded-lg text-base bg-orange-400 hover:bg-orange-500 dark:bg-gray-800 dark:text-blue-400 flex" key = {value}>
+                      <div className="p-2 mb-2 text-blue-800 rounded-lg text-base bg-orange-400 hover:bg-orange-500 dark:bg-gray-800 hover:text-blue-900 dark:text-blue-400 flex" key = {value}>
                         <div className="flex justify-between ml-4	w-full text-lg font-bold">
                           <div className="flex items-center">{key}</div>
                           <input className="cursor-pointer" type="checkbox" onChange={(e) => checkBt(e.target.checked, key)}/>
@@ -229,7 +257,7 @@ export default function Setting() {
                   <div className="h-[445px] overflow-y-auto p-2 bg-blue-50 rounded-lg">
                     {
                         Object.entries(leaguePs).map(([key, value]) => (
-                        <div className="p-2 mb-2 text-blue-800 rounded-lg text-base bg-orange-400 hover:bg-orange-500 dark:bg-gray-800 dark:text-blue-400 flex" key = {value}>
+                        <div className="p-2 mb-2 text-blue-800 rounded-lg text-base hover:text-blue-900 bg-orange-400 hover:bg-orange-500 dark:bg-gray-800 dark:text-blue-400 flex" key = {value}>
                           <div className="flex justify-between ml-4	w-full text-lg font-bold">
                             <div className="flex items-center" >{key}</div>
                             <input className="cursor-pointer" type="checkbox" onChange={(e) => checkPs(e.target.checked, key)}/>
@@ -253,7 +281,7 @@ export default function Setting() {
               </div>
               <div className="h-[515px]	overflow-y-auto bg-blue-50 p-2 rounded-lg">
                 {mornitorData.map((val, index) => (
-                  <div className="p-2 mb-2 text-blue-800 rounded-lg text-base bg-orange-400 hover:bg-orange-500 dark:bg-gray-800 dark:text-blue-400 flex" key={index}>
+                  <div className="p-2 mb-2 text-blue-800 rounded-lg text-base bg-orange-400 hover:bg-orange-500 dark:bg-gray-800 hover:text-blue-900 dark:text-blue-400 flex" key={index}>
                     <div className="flex justify-between	w-full text-lg font-bold">
                     <Image className=" ml-2 rounded-lg" width="32" height="32" src={`/images/${val.sport}.png`} alt="Rounded avatar"></Image>
                       <div className="flex justify-cente">{val.sport}</div>

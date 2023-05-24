@@ -5,7 +5,37 @@ import { useEffect } from "react";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Image from "next/image";
-import { Header } from "./../component/header";
+import Link from "next/link"
+// import { Header } from "./../component/header";
+
+const Header = () => {
+  return(
+    <div className='h-20 bg-slate-800'>
+      <div className='flex justify-between pl-24 pt-6 h-full'>
+        <div className='text-rose-600 hover:text-rose-700 text-4xl font-bold'>
+          <h1>Betfair-bot</h1>
+        </div>
+        <div className='flex pr-20 text-gray-400 text-2xl'>
+          <div className="p-3">
+            <Link href="/">
+              <h2 className=" hover:text-white">Home</h2>
+            </Link>
+          </div>
+          <div className="p-3">
+            <Link href="/setting">
+              <h2 className=" hover:text-white">Setting</h2>
+            </Link>
+          </div>
+          {/* <div className="p-3">
+            <Link href="/setting">
+              <h2>Authentication</h2>
+            </Link>
+          </div> */}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 const SportCard = ({ img = '', name = '', count = 0, inplay = false, runstate = false }) => {
   const [runcheck, setRunCheck] = useState(runstate);
@@ -52,7 +82,7 @@ const SportCard = ({ img = '', name = '', count = 0, inplay = false, runstate = 
   }
 
   return (
-    <div className="p-3 mb-2 text-blue-700 rounded-lg text-base bg-orange-400 hover:bg-orange-500 dark:bg-gray-800 dark:text-blue-400 flex">
+    <div className="p-3 mb-2 text-blue-700 rounded-lg text-base bg-orange-400 hover:bg-orange-500 hover:text-blue-800 dark:bg-gray-800 dark:text-blue-400 flex">
       <Image className="rounded-lg" width="28" height="28" src={img} alt="Rounded avatar"></Image>
       <div className="flex justify-between ml-4	w-full text-lg font-bold">
         <div className="flex items-center">{name}</div>
@@ -165,7 +195,7 @@ export default function Home() {
         <div className="row"></div>
         <div></div>
         <div className="h-screen bg-gradient-to-r from-teal-400 to-green-600">
-          <div className="pt-28 flex m-auto justify-center 	space-x-10">
+          <div className="pt-28 flex m-auto justify-center 	space-x-4">
             <div className="h-[600px] w-[500px] m-3 border-solid border-rose-600 bg-orange-600 p-4 rounded-lg">
               <div className="mb-4 text-3xl font-bold flex justify-center w-full text-purple-900">
                 <h1>Sport</h1>
