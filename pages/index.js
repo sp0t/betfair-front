@@ -1,4 +1,3 @@
-import Link from "next/link"
 import { useState } from "react";
 import React from "react";
 import axios from 'axios'
@@ -6,22 +5,44 @@ import { useEffect } from "react";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Image from "next/image";
+import { Header } from "./../component/header";
 
-const SportCard = ({ img = '', name = '', count = 0, state = false }) => {
-  const [checked, setChecked] = useState(state);
+const SportCard = ({ img = '', name = '', count = 0, inplay = false, runstate = false }) => {
+  const [runcheck, setRunCheck] = useState(runstate);
+  const [playcheck, setPlayCheck] = useState(inplay);
 
   useEffect(() => {
-    setChecked(state);
-  }, [state])
+    setRunCheck(runstate);
+  }, [runstate])
 
-  const checkSport = async (check) => {
-    setChecked(check)
+  useEffect(() => {
+    setPlayCheck(inplay);
+  }, [inplay])
+
+  const checkRunSport = async (check) => {
+    setRunCheck(check)
     try {
       const result = await axios.post(process.env.NEXT_PUBLIC_APIURL + 'setMornitor', { sport: name, state: check });
       console.log(result)
 
-      if (check) toast.success(`${name} checked.`);
-      else toast.success(`${name} unchecked.`);
+      if (check) toast.success(`Started betting on ${name} matchs.`);
+      else toast.success(`Stopped betting on ${name} matchs.`);
+    } catch (error) {
+      toast.error(`${name} set error.`);
+      setChecked(!check)
+      console.error(error);
+      return;
+    }
+  }
+
+  const checkInplaySport = async (check) => {
+    setPlayCheck(check)
+    try {
+      const result = await axios.post(process.env.NEXT_PUBLIC_APIURL + 'setInPlay', { sport: name, state: check });
+      console.log(result)
+
+      if (check) toast.success(`Will bet on inPlay ${name} matchs.`);
+      else toast.success(`Will bet all ${name} matchs.`);
     } catch (error) {
       toast.error(`${name} set error.`);
       setChecked(!check)
@@ -31,38 +52,25 @@ const SportCard = ({ img = '', name = '', count = 0, state = false }) => {
   }
 
   return (
-    <div className="p-3 mb-2 text-blue-800 rounded-lg text-base bg-orange-400 dark:bg-gray-800 dark:text-blue-400 flex">
+    <div className="p-3 mb-2 text-blue-700 rounded-lg text-base bg-orange-400 hover:bg-orange-500 dark:bg-gray-800 dark:text-blue-400 flex">
       <Image className="rounded-lg" width="28" height="28" src={img} alt="Rounded avatar"></Image>
       <div className="flex justify-between ml-4	w-full text-lg font-bold">
         <div className="flex items-center">{name}</div>
-        <input type="checkbox" checked={checked} onChange={(e) => checkSport(e.target.checked)} />
-      </div>
-    </div>
-  )
-}
-const Header = () => {
-  return(
-    <div className='h-20 bg-slate-800'>
-      <div className='flex justify-between pl-24 pt-6 h-full'>
-        <div className='text-rose-600 text-4xl font-bold'>
-          <h1>Betfair-bot</h1>
-        </div>
-        <div className='flex pr-20 text-white  text-2xl'>
-          <div className="p-3">
-            <Link href="/">
-              <h2>Home</h2>
-            </Link>
+        <div className="flex text-base">
+          <div className="flex items-center px-2 space-x-1 hover:text-blue-900">
+            <h1>inPlay</h1>
+            <input type="checkbox" className="cursor-pointer" checked={playcheck} onChange={(e) => checkInplaySport(e.target.checked)} />
           </div>
-          {/* <div className="p-3">
-            <Link href="/setting">
-              <h2>Setting</h2>
-            </Link>
-          </div> */}
+          <div className="flex items-center px-2 space-x-1 hover:text-blue-900">
+            <h1>run</h1>
+            <input type="checkbox" className="cursor-pointer" checked={runcheck} onChange={(e) => checkRunSport(e.target.checked)} />
+          </div>
         </div>
       </div>
     </div>
   )
 }
+
 export default function Home() {
 
   const [priceData, setPriceData] = useState([]);
@@ -80,6 +88,8 @@ export default function Home() {
         await axios.get(process.env.NEXT_PUBLIC_APIURL + 'getBetrate'),
         await axios.get(process.env.NEXT_PUBLIC_APIURL + 'getMornitor'),
       ])
+
+      console.log(sport)
 
       setPriceData(price.data);
       setSportData(sport.data);
@@ -152,6 +162,8 @@ export default function Home() {
     <>
       <div className="h-screen">
         <Header />
+        <div className="row"></div>
+        <div></div>
         <div className="h-screen bg-gradient-to-r from-teal-400 to-green-600">
           <div className="pt-28 flex m-auto justify-center 	space-x-10">
             <div className="h-[600px] w-[500px] m-3 border-solid border-rose-600 bg-orange-600 p-4 rounded-lg">
@@ -213,7 +225,7 @@ export default function Home() {
                       <div className="flex justify-center w-[60px]"> ~ </div>
                       <div className="flex justify-center w-[60px]">{val.to}</div>
                       <div className="flex justify-center w-[120px]">{val.price}</div>
-                      <button type="button" className="text-white p-2 bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium text-sm text-center inline-flex items-center mr-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 rounded-full" onClick={(e) => removePrice(index)}>
+                      <button type="button" className="text-white p-2 bg-blue-700 hover:bg-blue-900 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium text-sm text-center inline-flex items-center mr-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-900 rounded-full" onClick={(e) => removePrice(index)}>
                         <svg fill="none" className="w-5 h-5" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"></path>
                         </svg>
