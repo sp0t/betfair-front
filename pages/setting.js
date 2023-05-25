@@ -1,67 +1,10 @@
-import Link from "next/link"
 import { useState } from "react";
 import React from "react";
 import axios from 'axios'
-import { useEffect } from "react";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Image from "next/image";
-// import { Header } from "./../component/header";
-
-const Header = () => {
-  const [menustate, setMenuState] = useState(false);
-
-  const handleMouseEnter = () => {
-      setMenuState(true);
-  }
-
-  const handleMouseLeave = () => {
-    setMenuState(false)
-  }
-
-  return(
-    <nav className="flex items-center justify-between flex-wrap bg-slate-900 p-6">
-      <div className="flex items-center flex-shrink-0 text-white ms-10">
-        <svg className="fill-current h-8 w-8 mr-2" width="54" height="54" viewBox="0 0 54 54" xmlns="http://www.w3.org/2000/svg"><path d="M13.5 22.1c1.8-7.2 6.3-10.8 13.5-10.8 10.8 0 12.15 8.1 17.55 9.45 3.6.9 6.75-.45 9.45-4.05-1.8 7.2-6.3 10.8-13.5 10.8-10.8 0-12.15-8.1-17.55-9.45-3.6-.9-6.75.45-9.45 4.05zM0 38.3c1.8-7.2 6.3-10.8 13.5-10.8 10.8 0 12.15 8.1 17.55 9.45 3.6.9 6.75-.45 9.45-4.05-1.8 7.2-6.3 10.8-13.5 10.8-10.8 0-12.15-8.1-17.55-9.45-3.6-.9-6.75.45-9.45 4.05z"/></svg>
-        <span className="font-semibold text-2xl tracking-tight">Betfair-Bot</span>
-      </div>
-
-      <button onMouseEnter={() => handleMouseEnter()} onMouseLeave={() => handleMouseLeave()}>
-        <label className="sm:hidden cursor-pointer flex items-center px-3 py-2 border rounded text-teal-200 border-teal-400 hover:text-white hover:border-white"><svg class="fill-current h-3 w-3" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M0 3h20v2H0V3zm0 6h20v2H0V9zm0 6h20v2H0v-2z"/></svg></label>
-      </button>
-    
-
-      <div className="hidden w-full flex-grow sm:flex sm:items-center text-end sm:w-auto">
-        <div className="text-base sm:text-lg sm:flex-grow mr-7">
-          <a href="/" className="block mt-4 sm:inline-block lg:mt-0 text-teal-200 hover:text-white mr-4">
-            Home
-          </a>
-          <a href="/setting" className="block mt-4 sm:inline-block lg:mt-0 text-teal-200 hover:text-white mr-4">
-            Setting
-          </a>
-          {/* <a href="/authentication" className="block mt-4 sm:inline-block lg:mt-0 text-teal-200 hover:text-white">
-            Authentication
-          </a> */}
-        </div>
-      </div>
-
-      {menustate && <div id = 'togglebar' className="w-full sm:items-center text-end sm:w-auto" onMouseEnter={() => handleMouseEnter()} onMouseLeave={() => handleMouseLeave()}>
-        <div className="text-lg">
-          <a href="/" className="block mt-4 sm:inline-block lg:mt-0 text-teal-200 hover:text-white mr-4">
-            Home
-          </a>
-          <a href="/setting" className="block mt-4 sm:inline-block lg:mt-0 text-teal-200 hover:text-white mr-4">
-            Setting
-          </a>
-          {/* <a href="/authentication" className="block mt-4 sm:inline-block lg:mt-0 text-teal-200 hover:text-white">
-            Authentication
-          </a> */}
-        </div>
-      </div>}
-    </nav>
-  )
-}
-
+import { Header } from "./header";
 
 export default function Setting() {
   const [mornitorData, setMornitorData] = useState([]);
@@ -74,6 +17,10 @@ export default function Setting() {
   const [sportName, setSportName] = useState('');
   const [leagueBtids, setLeagueBtids] = useState([]);
   const [leaguePsids, setLeaguePsids] = useState([]);
+  const [filterleagueBt, setFilterleagueBt] = useState([]);
+  const [filterleaguePs, setFilterleaguePs] = useState([]);
+  const [leaguekybt, setLeaguekybt] = useState('');
+  const [leaguekyps, setLeaguekyps] = useState('');
 
   const sortObject = (mess) => {
 
@@ -84,6 +31,16 @@ export default function Setting() {
     });
 
     return sortedObj;
+  }
+  
+  const filterObject = (searchkey, data) => {
+    const filteredKeys  = Object.keys(data).filter(key => key.toLowerCase().includes(searchkey.toLowerCase()));
+    const filteredObj = filteredKeys.reduce((acc, key) => {
+      acc[key] = data[key];
+      return acc;
+    }, {});
+
+    return filteredObj;
   } 
 
   React.useEffect(() => {
@@ -98,7 +55,9 @@ export default function Setting() {
       setSportBt(sortObject(sport.data.betfair));
       setSportPs(sortObject(sport.data.ps3838));
       setLeagueBt(sortObject(league.data.betfair));
+      setFilterleagueBt(sortObject(league.data.betfair));
       setLeaguePs(sortObject(league.data.ps3838['Badminton']));
+      setFilterleaguePs(sortObject(league.data.ps3838['Badminton']));
     };
 
     run();
@@ -108,6 +67,16 @@ export default function Setting() {
     setLeaguePsids([]);
     setLeagueBtids([]);
   }, [sportBtname, sportPsname]);
+
+  React.useEffect(() => {
+    var tmp =  JSON.parse(JSON.stringify(leagueBt));
+    setFilterleagueBt(filterObject(leaguekybt, tmp));
+  }, [leaguekybt, leagueBt]);
+
+  React.useEffect(() => {
+    var tmp =  JSON.parse(JSON.stringify(leaguePs));
+    setFilterleaguePs(filterObject(leaguekyps, tmp));
+  }, [leaguekyps, leaguePs]);
 
   const selectSportPs = async(val) => {
     setSportPsname(val)
@@ -255,9 +224,15 @@ export default function Setting() {
                       }
                     </select>
                   </div>
-                  <div className="h-[445px] overflow-y-auto p-1 lg:p-2 bg-blue-50 rounded-lg">
+                  <div className="relative mb-2">
+                    <div className="absolute inset-y-0 left-0 flex items-center sm:pl-3 pointer-events-none">
+                      <svg aria-hidden="true" className="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <input type="search" id="default-search" className="block w-full sm:pl-10 p-2 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Search sports..." onChange={(e) => setLeaguekybt(e.target.value)} required></input>
+                  </div>
+                  <div className="h-[400px] overflow-y-auto p-1 lg:p-2 bg-blue-50 rounded-lg">
                     {
-                      Object.entries(leagueBt).map(([key, value]) => (
+                      Object.entries(filterleagueBt).map(([key, value]) => (
                       <div className="justify-center p-2 mb-1 lg:mb-2 text-blue-800 rounded-lg text-base bg-orange-400 hover:bg-orange-500 dark:bg-gray-800 hover:text-blue-900 dark:text-blue-400 flex" key = {value}>
                         <div className="flex justify-between items-center ml-2 lg:ml-4	w-full text-lg font-bold">
                           <div className="flex items-center justify-center">{key}</div>
@@ -281,9 +256,15 @@ export default function Setting() {
                         }
                       </select>
                   </div>
-                  <div className="h-[445px] overflow-y-auto p-1 lg:p-2 bg-blue-50 rounded-lg">
+                  <div className="relative mb-2">
+                    <div className="absolute inset-y-0 left-0 flex items-center sm:pl-3 pointer-events-none">
+                      <svg aria-hidden="true" className="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <input type="search" id="default-search" className="block w-full sm:pl-10 p-2 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Search sports..." onChange={(e) => setLeaguekyps(e.target.value)} required></input>
+                  </div>
+                  <div className="h-[400px] overflow-y-auto p-1 lg:p-2 bg-blue-50 rounded-lg">
                     {
-                        Object.entries(leaguePs).map(([key, value]) => (
+                        Object.entries(filterleaguePs).map(([key, value]) => (
                         <div className="justify-center p-2 mb-1 lg:mb-2 text-blue-800 rounded-lg text-base bg-orange-400 hover:bg-orange-500 dark:bg-gray-800 hover:text-blue-900 dark:text-blue-400 flex" key = {value}>
                           <div className="flex justify-between items-center ml-2 lg:ml-4	w-full text-lg font-bold">
                             <div className="flex items-center" >{key}</div>
@@ -296,7 +277,7 @@ export default function Setting() {
                 </div>
               </div>
             </div>
-            <div className="h-[600px] sm:w-[400px] sm:m-auto m-2 border-solid border-rose-600 bg-orange-600 p-2 rounded-lg xl:ml-10">
+            <div className="h-[600px] sm:w-[400px] sm:m-auto m-2 border-solid border-rose-600 bg-orange-600 p-2 sm:mt-2 rounded-lg xl:m-auto xl:ml-10">
               <div className="mb-2 text-2xl lg:text-3xl lg:mb-4 font-bold flex justify-center w-full text-purple-900">
                 <h1>Sport</h1>
               </div>
