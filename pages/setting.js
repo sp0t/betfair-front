@@ -39,9 +39,9 @@ const Header = () => {
           <a href="/setting" className="block mt-4 sm:inline-block lg:mt-0 text-teal-200 hover:text-white mr-4">
             Setting
           </a>
-          <a href="/authentication" className="block mt-4 sm:inline-block lg:mt-0 text-teal-200 hover:text-white">
+          {/* <a href="/authentication" className="block mt-4 sm:inline-block lg:mt-0 text-teal-200 hover:text-white">
             Authentication
-          </a>
+          </a> */}
         </div>
       </div>
 
