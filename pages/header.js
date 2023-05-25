@@ -1,7 +1,8 @@
 import Link from "next/link"
 import React from "react";
 import { useState } from "react";
-export const Header = () => {
+
+const Header = () => {
   const [menustate, setMenuState] = useState(false);
 
   const handleMouseEnter = () => {
@@ -54,3 +55,5 @@ export const Header = () => {
     </nav>
   )
 }
+
+export default Header;

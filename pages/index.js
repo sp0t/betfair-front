@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Image from "next/image";
-import { Header } from "./header";
+import Header from "./../pages/header";
 
 
 const SportCard = ({ img = '', name = '', count = 0, inplay = false, runstate = false }) => {
@@ -72,7 +72,7 @@ const SportCard = ({ img = '', name = '', count = 0, inplay = false, runstate = 
   )
 }
 
-export default function Home() {
+ const Home = () => {
 
   const [priceData, setPriceData] = useState([]);
   const [from, setFrom] = useState(0);
@@ -243,3 +243,5 @@ export default function Home() {
     </>
   )
 }
+
+export default Home;
