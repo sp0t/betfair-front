@@ -24,6 +24,8 @@ const Setting = () => {
   const [sportName, setSportName] = useState('Alpine Skiing');
   const [leagueBtids, setLeagueBtids] = useState([]);
   const [leaguePsids, setLeaguePsids] = useState([]);
+  const [leagueBtname, setLeagueBtname] = useState('');
+  const [leaguePsname, setLeaguePsname] = useState('');
   const [filterleagueBt, setFilterleagueBt] = useState([]);
   const [filterleaguePs, setFilterleaguePs] = useState([]);
   const [filterleagueSetBt, setFilterleagueSetBt] = useState([]);
@@ -84,6 +86,10 @@ const Setting = () => {
   React.useEffect(() => {
     setLeaguePsids([]);
     setLeagueBtids([]);
+    setLeagueBtname('');
+    setLeaguePsname('');
+    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+    checkboxes.forEach(checkbox => checkbox.checked = false);
   }, [sportBtname, sportPsname]);
 
   React.useEffect(() => {
@@ -111,11 +117,13 @@ const Setting = () => {
     var ret =  await axios.get(process.env.NEXT_PUBLIC_APIURL + 'getLeague');
     setLeaguePs(sortObject(ret.data.ps3838[val]));
     setLeaguePsids([]);
+    setLeaguePsname('');
   }
 
   const selectSportBt = async(val) => {
     setSportBtname(val)
     setLeagueBtids([]);
+    setLeagueBtname('');
   }
 
   const openModifyDialog = async(name) => {
@@ -141,6 +149,7 @@ const Setting = () => {
       }
     }
     setLeaguePsids(tmp)
+    setLeaguePsname(value);
   }
 
   const checkBt = (state, value) => {
@@ -153,20 +162,24 @@ const Setting = () => {
       }
     }
     setLeagueBtids(tmp)
+    setLeagueBtname(value)
   }
 
-  const changeMornitorSetdata = (state, value, order) => {
+  const changeMornitorSetdata = (state, value, order, name) => {
     var tmp =  JSON.parse(JSON.stringify(mornitorSetData));
-    if(state) tmp.sites[order].competition.push(value)
+    if(state) {
+      tmp.sites[order].competition.push(value);
+      tmp.sites[order].competitionname = name;
+    }
     else {
       const index = tmp.sites[order].competition.indexOf(value);
       if (index !== -1) {
         tmp.sites[order].competition.splice(index, 1);
       }
     }
+
     setMornitorSetData(tmp)
 
-    console.log(tmp)
   }
 
   const removeSport = React.useCallback(async (index, name) => {
@@ -191,15 +204,13 @@ const Setting = () => {
       return;
     }
 
-    for (var x in temp) {
-      if (temp[x].sport == sportName) {
-        toast.warn(`${sportName} already added. Please remove it before add.`);
-        return;
-      }
-    }
-
     if (leagueBtids.length == 0) {
       toast.warn(`Please check competitions for ${sportBtname}.`);
+      return;
+    }
+
+    if (leagueBtids.length > 1) {
+      toast.warn(`Can't select more than 2 competitions for ${sportBtname}.`);
       return;
     }
 
@@ -208,9 +219,21 @@ const Setting = () => {
       return;
     }
 
+    if (leaguePsids.length > 1) {
+      toast.warn(`Can't select more than 2 competitions for ${sportPsname}.`);
+      return;
+    }
+
     var data = {};
-    data.sport = sportName;
+    data.sport = sportName + '-' + leagueBtname;
     data.sites = [];
+
+    for (var x in temp) {
+      if (temp[x].sport == data.sport) {
+        toast.warn(`${data.sport} already added. Please remove it before add.`);
+        return;
+      }
+    }
 
     var tmp = {};
     tmp.name = 'betfair';
@@ -218,6 +241,7 @@ const Setting = () => {
     tmp.sportname = sportBtname;
     tmp.competition = [];
     tmp.competition = leagueBtids;
+    tmp.competitionname = leagueBtname;
 
     data.sites.push(tmp);
 
@@ -226,12 +250,13 @@ const Setting = () => {
     tmp.sportid = sportPs[sportPsname];
     tmp.sportname = sportPsname;
     tmp.competition = [];
-    tmp.competition = leaguePsids
+    tmp.competition = leaguePsids;
+    tmp.competitionname = leaguePsname;
 
     data.sites.push(tmp);
 
     try {
-      const result = await axios.post(process.env.NEXT_PUBLIC_APIURL + 'addMornitor', { sport: sportName, sites: data.sites});
+      const result = await axios.post(process.env.NEXT_PUBLIC_APIURL + 'addMornitor', { sport: data.sport, sites: data.sites});
       temp.push(data);
       setMornitorData(temp);
       toast.success(`Sucess.`);
@@ -240,14 +265,28 @@ const Setting = () => {
 
       setLeagueBtids([]);
       setLeaguePsids([]);
+      setLeagueBtname('');
+      setLeaguePsname('');
     } catch (error) {
       toast.error(`Failed.`);
       console.error(error);
     } 
 
-  },[mornitorData, sportName, sportBtname, sportPsname, leagueBtids, leaguePsids])
+  },[mornitorData, sportName, sportBtname, sportPsname, leagueBtids, leaguePsids, leagueBtname, leaguePsname])
+
+  const devideString = (data) => {
+    const val = data.split("-");
+    const extracted = val[0].trim();
+    return extracted;
+  }
 
   const updateMonitor = React.useCallback(async() => {
+    if(mornitorSetData.sites[0].competition.length > 1 || mornitorSetData.sites[1].competition.length > 1)
+    {
+      toast.warn('Please select one competetion for each site.');
+      return;
+    }
+
     try {
       await axios.post(process.env.NEXT_PUBLIC_APIURL + 'updateMornitor', { sites: mornitorSetData.sites, sport: modifySportname});
       toast.success('Success.');
@@ -364,9 +403,9 @@ const Setting = () => {
                 {mornitorData.map((val, index) => (
                   <div className="items-center justify-center p-2 mb-1 lg:mb-2 text-blue-800 rounded-lg text-base bg-orange-400 hover:bg-orange-500 dark:bg-gray-800 hover:text-blue-900 dark:text-blue-400 flex" key={index}>
                     <div className="flex justify-between items-center	w-full text-lg font-bold">
-                    <Image className=" ml-1 lg:ml-2 rounded-lg" width="25" height="25" src={`/images/${val.sport}.png`} alt="Rounded avatar"></Image>
-                      <div className="flex justify-cente px-1">{val.sport}</div>
-                      <div>
+                    <Image className=" ml-1 lg:ml-2 rounded-lg" width="25" height="25" src={`/images/${devideString(val.sport)}.png`} alt="Rounded avatar"></Image>
+                      <div className="flex justify-cente px-1 text-center">{val.sport}</div>
+                      <div className="flex">
                         <div className="group relative inline-block">
                           <button type="button" className="text-white p-2 bg-blue-700 hover:bg-blue-900 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium text-sm text-center inline-flex items-center mr-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 rounded-full" onClick={() => openModifyDialog(val.sport)}>
                             <svg fill="none" className="w-4 h-4" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -377,7 +416,7 @@ const Setting = () => {
                             Edit
                           </div>
                         </div>
-                        <div className="group relative inline-block">
+                        <div className="group relative inline-block place-items-center">
                           <button type="button" className="text-white p-2 bg-blue-700 hover:bg-blue-900 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium text-sm text-center inline-flex items-center mr-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 rounded-full" onClick={(e) => removeSport(index, val.sport)}>
                             <svg fill="none" className="w-4 h-4" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                               <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"></path>
@@ -420,7 +459,7 @@ const Setting = () => {
                     <div className="justify-center p-2 mb-1 lg:mb-2 text-blue-800 rounded-lg text-base bg-orange-400 hover:bg-orange-500 dark:bg-gray-800 hover:text-blue-900 dark:text-blue-400 flex" key = {value}>
                       <div className="flex justify-between items-center ml-2 lg:ml-4	w-full text-lg font-bold">
                         <div className="flex items-center justify-center">{key}</div>
-                        <input className="cursor-pointer" type="checkbox" checked = {mornitorSetData.sites[0].competition.includes(value)} onChange={(e) =>changeMornitorSetdata(e.target.checked, value, 0)}/>
+                        <input className="cursor-pointer" type="checkbox" checked = {mornitorSetData.sites[0].competition.includes(value)} onChange={(e) =>changeMornitorSetdata(e.target.checked, value, 0, key)}/>
                       </div>
                     </div>
                     ))
@@ -443,7 +482,7 @@ const Setting = () => {
                       <div className="justify-center p-2 mb-1 lg:mb-2 text-blue-800 rounded-lg text-base bg-orange-400 hover:bg-orange-500 dark:bg-gray-800 hover:text-blue-900 dark:text-blue-400 flex" key = {value}>
                         <div className="flex justify-between items-center ml-2 lg:ml-4	w-full text-lg font-bold">
                           <div className="flex items-center" >{key}</div>
-                          <input className="cursor-pointer" type="checkbox" checked = {mornitorSetData.sites[1].competition.includes(value)} onChange={(e) =>changeMornitorSetdata(e.target.checked, value, 1)}/>
+                          <input className="cursor-pointer" type="checkbox" checked = {mornitorSetData.sites[1].competition.includes(value)} onChange={(e) =>changeMornitorSetdata(e.target.checked, value, 1, key)}/>
                         </div>
                       </div>
                       ))

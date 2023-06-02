@@ -26,7 +26,7 @@ const SportCard = ({ img = '', name = '', _diffmode = '0', _betmode = '0', _moni
       else toast.success(`Fixed Diff Mode setted on ${name} matchs.`);
     } catch (error) {
       toast.error(`${name} Diff Mode set error.`);
-      setChecked(!check)
+      setDiffmodeState(!check)
       console.error(error);
       return;
     }
@@ -42,7 +42,7 @@ const SportCard = ({ img = '', name = '', _diffmode = '0', _betmode = '0', _moni
       else toast.success(`Fixed Bet Mode setted on ${name} matchs.`);
     } catch (error) {
       toast.error(`${name} Bet Mode set error.`);
-      setChecked(!check)
+      setBetmode(!check)
       console.error(error);
       return;
     }
@@ -57,23 +57,24 @@ const SportCard = ({ img = '', name = '', _diffmode = '0', _betmode = '0', _moni
       else toast.success(`Will stop montoring on ${name} matchs.`);
     } catch (error) {
       toast.error(`${name} monit set error.`);
-      setChecked(!check)
+      setMonitState(!check)
       console.error(error);
       return;
     }
   }
 
   const setBetting = async (check) => {
+    console.log('===================>', name, check)
     setBettingState(check)
     try {
-      const result = await axios.post(process.env.NEXT_PUBLIC_APIURL + 'setBetting', { sport: name, state: check });
+      const result = await axios.post(process.env.NEXT_PUBLIC_APIURL + 'setBetting', { "sport": name, "state": check });
       console.log(result)
 
       if (check) toast.success(`Will bet on ${name} matchs.`);
       else toast.success(`Will stop betting on ${name} matchs.`);
     } catch (error) {
       toast.error(`${name} betting set error.`);
-      setChecked(!check)
+      setBettingState(!check)
       console.error(error);
       return;
     }
@@ -89,7 +90,7 @@ const SportCard = ({ img = '', name = '', _diffmode = '0', _betmode = '0', _moni
       else toast.success(`Will bet all ${name} matchs.`);
     } catch (error) {
       toast.error(`${name} set error.`);
-      setChecked(!check)
+      setPlaymodeState(!check)
       console.error(error);
       return;
     }
@@ -104,7 +105,7 @@ const SportCard = ({ img = '', name = '', _diffmode = '0', _betmode = '0', _moni
       if (check) toast.success(`${name} market setting success.`);
     } catch (error) {
       toast.error(`${name} market setting error.`);
-      setChecked(!check)
+      setMarketState(!check)
       console.error(error);
       return;
     }
@@ -116,59 +117,25 @@ const SportCard = ({ img = '', name = '', _diffmode = '0', _betmode = '0', _moni
         <Image className="rounded-lg w-auto h-auto" width="25" height="25" src={img} alt="Rounded avatar"></Image>
         <div className="flex items-center text-lg font-bold ml-2">{name}</div>
       </div>
-      <div className="flex">
-        <div className="border border-gray-200 rounded-lg p-2 m-auto">
-          <h3 className="font-semibold text-gray-900 dark:text-white pl-2">DiffMode</h3>
-          <ul className="w-1/3 text-sm font-medium text-gray-900  dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-            <li className="w-full rounded-t-lg dark:border-gray-600">
-              <div className="flex items-center pl-3">
-                <input type="radio" value='0' checked={diffmode == "0"} name={`${count}-diffmode`} onChange={(e) => setDiffMode(e.target.value)} className="w-4 h-4 text-blue-600 bg-gray-100  focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500 hover:cursor-pointer"></input>
-                <label htmlFor={`${count}-diffmode`} className="w-full py-2 ml-1 text-sm font-medium text-gray-900 dark:text-gray-300">Fixed </label>
-              </div>
-            </li>
-            <li className="w-full rounded-t-lg dark:border-gray-600">
-              <div className="flex items-center pl-3">
-                <input type="radio" value='1' checked={diffmode == "1"} name={`${count}-diffmode`} onChange={(e) => setDiffMode(e.target.value)} className="w-4 h-4 text-blue-600 bg-gray-100  focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500 hover:cursor-pointer"></input>
-                <label htmlFor={`${count}-diffmode`} className="w-full py-2 ml-1 text-sm font-medium text-gray-900 dark:text-gray-300">Percent</label>
-              </div>
-            </li>
-          </ul>
-        </div>
-        <div className="border border-gray-200 rounded-lg p-2 m-auto">
-          <h3 className="font-semibold text-gray-900 dark:text-white pl-2">BetMode</h3>
-          <ul className="w-1/3 text-sm font-medium text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-            <li className="w-full rounded-t-lg dark:border-gray-600">
-              <div className="flex items-center pl-3">
-                <input type="radio" value="0" checked={betmode == "0"} onChange={(e) => setBetMode(e.target.value)} name={`${count}-betmode`} className="w-4 h-4 text-blue-600 bg-gray-100 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500 hover:cursor-pointer"></input>
-                <label htmlFor={`${count}-betmode`} className="w-full py-2 ml-1 text-sm font-medium text-gray-900 dark:text-gray-300">Fixed </label>
-              </div>
-            </li>
-            <li className="w-full rounded-t-lg dark:border-gray-600">
-              <div className="flex items-center pl-3">
-                <input type="radio" value="1" checked={betmode == "1"} onChange={(e) => setBetMode(e.target.value)} name={`${count}-betmode`} className="w-4 h-4 text-blue-600 bg-gray-100 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500 hover:cursor-pointer"></input>
-                <label htmlFor={`${count}-betmode`} className="w-full py-2 ml-1 text-sm font-medium text-gray-900 dark:text-gray-300">Percent</label>
-              </div>
-            </li>
-          </ul>
-        </div>
-        <div className="border border-gray-200 rounded-lg p-2 m-auto">
-          <ul className="w-1/3 text-sm font-medium text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+      <div className="flex justify-end">
+        <div className="flex border border-gray-200 rounded-lg p-1">
+          <ul className="flex text-sm font-medium text-gray-900 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
             <li className="w-full rounded-t-lg dark:border-gray-600">
               <div className="flex items-center pl-3">
                 <input type="checkbox" value="" name="inplay" checked={playmode} className="w-4 h-4 text-blue-600 bg-gray-100 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500 hover:cursor-pointer" onChange={(e) => setPlayMode(e.target.checked)}></input>
-                <label htmlFor="inplay" className="w-full py-2 ml-1 text-sm font-medium text-gray-900 dark:text-gray-300">InPlay </label>
+                <label htmlFor="inplay" className="w-full py-1 ml-1 text-sm font-medium text-gray-900 dark:text-gray-300">InPlay </label>
               </div>
             </li>
             <li className="w-full rounded-t-lg dark:border-gray-600">
               <div className="flex items-center pl-3">
                 <input type="checkbox" value="" name="monit" checked={monit} className="w-4 h-4 text-blue-600 bg-gray-100 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500 hover:cursor-pointer" onChange={(e) => setMonit(e.target.checked)}></input>
-                <label htmlFor="monit" className="w-full py-2 ml-1 text-sm font-medium text-gray-900 dark:text-gray-300">Monit </label>
+                <label htmlFor="monit" className="w-full py-1 ml-1 text-sm font-medium text-gray-900 dark:text-gray-300">Monit </label>
               </div>
             </li>
             <li className="w-full rounded-t-lg dark:border-gray-600">
               <div className="flex items-center pl-3">
                 <input type="checkbox" value="" name="betting" checked={betting} className="w-4 h-4 text-blue-600 bg-gray-100 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500 hover:cursor-pointer" onChange={(e) => setBetting(e.target.checked)}></input>
-                <label htmlFor="betting" className="w-full py-2 ml-1 text-sm font-medium text-gray-900 dark:text-gray-300">Betting</label>
+                <label htmlFor="betting" className="w-full py-1 ml-1 text-sm font-medium text-gray-900 dark:text-gray-300">Betting</label>
               </div>
             </li>
           </ul>
@@ -185,17 +152,17 @@ const SportCard = ({ img = '', name = '', _diffmode = '0', _betmode = '0', _moni
 
   const [filteredData, setFilteredData] = useState([]);
   const [stakemodedata, setStakeModeData] = useState([]);
-  const [stakemode, setStakeMode] = useState(0);
+  const [diffmode, setDiffMode] = useState(0);
+  const [betmode, setBetMode] = useState(0);
   const [from, setFrom] = useState(0);
   const [to, setTo] = useState(0);
-  const [fixed, setFixed] = useState(0);
-  const [percent, setPercent] = useState(0);
+  const [stake, setStake] = useState(0);
   const [max, setMax] = useState(0);
 
   React.useEffect(() => {
     const run = async () => {
       var [price, sport] = await Promise.all([
-        await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getStakeMode?mode=2`),
+        await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getStakeMode`),
         await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getMornitor?sport=ALL`),
       ])
 
@@ -211,53 +178,36 @@ const SportCard = ({ img = '', name = '', _diffmode = '0', _betmode = '0', _moni
     setFilteredData(!!searchkey ? sportData.filter(el => el.sport.toLowerCase().includes(searchkey.toLowerCase())) : sportData);
   }, [searchkey, sportData]);
 
-  const setModeData = async(mode) => {
-    const ret = await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getStakeMode?mode=${mode}`);
-    setStakeModeData(ret.data);
-    setStakeMode(mode);
-  }
-
-  const addPrice = React.useCallback(async () => {
+ const addPrice = React.useCallback(async () => {
     var data = {};
     var temp = JSON.parse(JSON.stringify(stakemodedata));
-
-    if (stakemode == 2) {
-      toast.info('Please select stake mode.');
-      return;
-    }
 
     if (to <= from) {
       toast.info('Under value should bigger than Over value.');
       return;
     }
 
-    if ( fixed <= 0) {
-      toast.info('Fixed value should bigger than zero.');
+    if ( stake <= 0) {
+      toast.info('stake value should bigger than zero.');
       return;
     }
-
-    if ( percent <= 0) {
-      toast.info('Percent value should bigger than zero.');
-      return;
-    }
-
 
     for (var x in temp) {
-      if (temp[x].from == from && temp[x].to == to && temp[x].mode == stakemode) {
+      if (temp[x].from == from && temp[x].to == to && temp[x].betmode == betmode && temp[x].diffmode == diffmode) {
         toast.info('Already added.');
         return;
       }
     }
 
+    data.diffmode = diffmode;
+    data.betmode = betmode;
     data.from = from;
     data.to = to;
-    data.mode = stakemode;
-    data.fixed = fixed;
-    data.percent = percent;
+    data.stake = stake;
     data.max = max;
 
     try {
-      const result = await axios.post(process.env.NEXT_PUBLIC_APIURL + 'addStakeMode', {mode:stakemode, from: from, to: to, fixed: fixed, percent:percent, max: max, state: true });
+      const result = await axios.post(process.env.NEXT_PUBLIC_APIURL + 'addStakeMode', {diffmode:diffmode, betmode:betmode, from: from, to: to, stake: stake, max: max, state: true });
       console.log(result)
       temp.push(data)
       toast.success(`StakeMode( ${from} ~ ${to} ) added.`);
@@ -268,15 +218,21 @@ const SportCard = ({ img = '', name = '', _diffmode = '0', _betmode = '0', _moni
       return;
     }
 
-  }, [stakemode, from, to, fixed, percent, max, stakemodedata]);
+  }, [diffmode, betmode, from, to, stake, max, stakemodedata]);
+
+  const devideString = (data) => {
+    const val = data.split("-");
+    const extracted = val[0].trim();
+    return extracted;
+  }
 
   const removePrice = async (index) => {
     var temp = JSON.parse(JSON.stringify(stakemodedata));
     var from = temp[index].from;
     var to = temp[index].to;
-    var mode = temp[index].mode;
+
     try {
-      const result = await axios.post(process.env.NEXT_PUBLIC_APIURL + 'removeStakeMode', { from: temp[index].from, to: temp[index].to, mode: temp[index].mode, state: true });
+      const result = await axios.post(process.env.NEXT_PUBLIC_APIURL + 'removeStakeMode', {diffmode: temp[index].diffmode, betmode: temp[index].betmode, stake:temp[index].stake, from: temp[index].from, to: temp[index].to, state: true });
       temp.splice(index, 1);
       toast.success(`Price ( ${from} ~ ${to} ) removed.`);
       setStakeModeData(temp);
@@ -306,7 +262,7 @@ const SportCard = ({ img = '', name = '', _diffmode = '0', _betmode = '0', _moni
               </div>
               <div className="h-[490px] sm:h-[440px] overflow-y-auto p-1 sm:p-2 bg-blue-50 rounded-lg">
                 {filteredData.map((val, index) => (
-                  <SportCard img={`/images/${val.sport}.png`} name={val.sport} _diffmode={val.diffmode} _betmode={val.betmode} _monit={val.monit} _betting={val.betting} _playmode={val.playmode} _market={val.market} count = {index} key={index}/>
+                  <SportCard img={`/images/${devideString(val.sport)}.png`} name={val.sport} _diffmode={val.diffmode} _betmode={val.betmode} _monit={val.monit} _betting={val.betting} _playmode={val.playmode} _market={val.market} count = {index} key={index}/>
                 ))}
               </div>
             </div>
@@ -314,80 +270,53 @@ const SportCard = ({ img = '', name = '', _diffmode = '0', _betmode = '0', _moni
               <div className="mb-2 text-2xl font-bold flex justify-center w-full text-purple-900 sm:mb-4 sm:text-3xl">
                 <h1>Stake Mode</h1>
               </div>
-              <div className="flex text-base font-bold justify-center space-x-5 mb-2">
-                <div className="flex place-items-center">
-                  <h1>DiffMode</h1>
+              <div className="flex space-x-2 px-2 mb-2">
+                <h1 className="mr-3 mt-1">Diff</h1>
+                <select className="cursor-pointer block w-18 p-1 overflow-auto text-sm text-center bg-orange-500 text-black border rounded-md" onChange={(e) => setDiffMode(e.target.value)}>
+                  <option className="cursor-pointer" value={0}>Fiexd</option>
+                  <option className="cursor-pointer" value={1}>Percent</option>
+                </select>
+                <input type="number" className="text-sm w-16 text-center bg-white text-black border rounded-md" min="0" required onChange={(e) => setFrom(e.target.value)}></input>
+                <h1 className="px-3.5">~</h1>
+                <input type="number" className="text-sm w-16 text-center bg-white text-black border rounded-md" min="0" required onChange={(e) => setTo(e.target.value)}></input>
+                <h1 className=""></h1>
+              </div>
+              <div className="flex space-x-2 px-2 mb-4">
+                <h1 className="mt-1">Stake</h1>
+                <select className="cursor-pointer block w-18 p-1 overflow-auto text-sm text-center bg-orange-500 text-black border rounded-md " onChange={(e) => setBetMode(e.target.value)}>
+                  <option className="cursor-pointer" value={0}>Fiexd</option>
+                  <option className="cursor-pointer" value={1}>Percent</option>
+                </select>
+                <div className="flex">
+                  <input type="number" className="text-sm w-16 text-center bg-white text-black border rounded-md" min="0" required onChange={(e) => setStake(e.target.value)}></input>
                 </div>
-                <div className="">
-                  <select className="cursor-pointer block w-full p-1 overflow-auto text-lg text-center text-white border border-gray-300 rounded-lg bg-blue-600 focus:ring-blue-700 focus:border-blue-700 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" onChange={(e) => setModeData(e.target.value)}>
-                    <option className="cursor-pointer" value={0}>Fiexd Mode</option>
-                    <option className="cursor-pointer" value={1}>Percent Mode</option>
-                    <option className="cursor-pointer" value={2}>All Mode</option>
-                  </select>
+                <h1 className=""></h1>
+                <h1 className="mr-2">Max</h1>
+                <div className="flex">
+                  <input type="number" className="py-1 text-sm w-16 text-center bg-white text-black border rounded-md" min="0" required onChange={(e) => setMax(e.target.value)}></input>
+                </div>
+                <h1 className="">($)</h1>
+                <div className="flex items-end mb-0.5">
+                  <button className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-3 py-1" onClick={() => addPrice()}>+</button>
                 </div>
               </div>
-              <div>
-                <div className="flex justify-center m-auto space-x-8 mb-2">
-                  <div className="flex place-items-center text-base font-bold">
-                    <h1>Over</h1>
-                  </div>
-                  <div className="">
-                  <input type="number" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" min="0" placeholder={stakemode == 0 ? '0.00$':'0.00%'} onChange={(e) => { setFrom(e.target.value) }} required></input>
-                  </div>
-                </div>
-                <div className="flex justify-center m-auto space-x-5 mb-2">
-                  <div className="flex place-items-center text-base font-bold">
-                    <h1>Under</h1>
-                  </div>
-                  <div className="">
-                  <input type="number" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" min="0" placeholder={stakemode == 0 ? '0.00$':'0.00%'} onChange={(e) => { if (e.target.value < from)
-                      e.target.value = from;
-                      setTo(e.target.value)}
-                    } required></input>
-                  </div>
-                </div>
-              </div>
-              <div className="relative flex justify-start pb-4 sm:pb-5">
-                <div className="pr-2 sm:pr-4">
-                  <div className="mb-1 text-base flex justify-center w-full font-bold">
-                    <h1>Fixed</h1>
-                  </div>
-                  <input type="number" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="0.00$" min="0" onChange={(e) => { setFixed(e.target.value) }} required></input>
-                </div>
-                <div className="pr-2 sm:pr-4">
-                  <div className="mb-1 text-base flex justify-center w-full font-bold">
-                    <h1>Percent</h1>
-                  </div>
-                  <input type="number" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="0.00%" min="0" onChange={(e) => { setPercent(e.target.value) }} required></input>
-                </div>
-                <div className="pr-2 sm:pr-4">
-                  <div className="mb-1 text-base flex justify-center w-full font-bold">
-                    <h1>Max</h1>
-                  </div>
-                  <input type="number" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="0.00$" min="0" onChange={(e) => { setMax(e.target.value) }} required></input>
-                </div>
-                <div className="flex items-end">
-                  <button className="text-white h-10 right-2.5 bottom-2.5 bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" onClick={addPrice}>+</button>
-                </div>
-              </div>
-              <div className="h-[325px] sm:h-[295px] overflow-y-auto bg-blue-50 p-1 sm:p-2 rounded-lg">
+              <div className="h-[460px] sm:h-[430px] overflow-y-auto bg-blue-50 p-1 sm:p-2 rounded-lg">
                 {stakemodedata.map((val, index) => (
                   <div className="p-2 mb-1 sm:mb-2 text-blue-800 rounded-lg text-base bg-orange-400 dark:bg-gray-800 dark:text-blue-400 flex" key={index}>
-                    <div className="flex justify-between items-center w-full text-lg font-bold">
-                      <div className=" justify-items-center justify-center pl-4">
-                        <h1>Diff Range</h1>
-                        <h1 className=" text-red-800">{val.from}{val.mode == 0 ? '$': '%'} ~ {val.to}{val.mode == 0 ? '$': '%'}</h1>
+                    <div className="flex justify-between items-center w-full text-md font-bold">
+                      <div className="flex text-center">
+                        <div className="w-20 text-end">{val.diffmode == 0 ? 'Fixed:':'Percent:'}</div>
+                        <h1 className="pl-1">{val.diffmode == 0 ? `${val.from} `: `${val.from}`}</h1>
+                        <h1>~</h1>
+                        <h1>{val.diffmode == 0 ? `${val.to} `: `${val.to}`}</h1>
                       </div>
-                      <div className=" justify-items-center justify-center">
-                        <div>
-                          <span>Fixed - </span><span className=" text-red-800">{val.fixed}$</span>
-                        </div>
-                        <div>
-                          <span>Percent - </span><span className=" text-red-800">{val.percent}%</span>
-                        </div>
-                        <div>
-                          <span>Max - </span><span className=" text-red-800">{val.max}$</span>
-                        </div>
+                      <div className="flex text-center">
+                        <div>Stake:</div>
+                        <h1 className="pl-1">{val.betmode == 0 ? `$${val.stake}`: `${val.stake}%`}</h1>
+                      </div>
+                      <div className="flex text-center">
+                        <div>Max:</div>
+                        <h1 className="pl-1">{`$${val.max}`}</h1>
                       </div>
                       <button type="button" className="text-white p-2 bg-blue-700 hover:bg-blue-900 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium text-sm text-center inline-flex items-center mr-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-900 rounded-full" onClick={(e) => removePrice(index)}>
                         <svg fill="none" className="w-4 h-4" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
