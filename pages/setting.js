@@ -127,7 +127,7 @@ const Setting = () => {
   }
 
   const openModifyDialog = async(name) => {
-    const retsport = await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getMornitor?sport=${name}`)
+    const retsport = await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getMonitor?sport=${name}`)
     setMornitorSetData(retsport.data[0])
     const sportps = retsport.data[0].sites[1].sportname;
     var retleague =  await axios.get(process.env.NEXT_PUBLIC_APIURL + 'getLeague');
@@ -186,7 +186,7 @@ const Setting = () => {
     var temp = JSON.parse(JSON.stringify(mornitorData));
 
     try {
-      const result = await axios.post(process.env.NEXT_PUBLIC_APIURL + 'removeMornitor', { sport: name });
+      const result = await axios.post(process.env.NEXT_PUBLIC_APIURL + 'removeMonitor', { sport: name });
       temp.splice(index, 1);
       toast.success(`Sport ${name} removed.`);
       setMornitorData(temp);
@@ -256,7 +256,7 @@ const Setting = () => {
     data.sites.push(tmp);
 
     try {
-      const result = await axios.post(process.env.NEXT_PUBLIC_APIURL + 'addMornitor', { sport: data.sport, sites: data.sites});
+      const result = await axios.post(process.env.NEXT_PUBLIC_APIURL + 'addMonitor', { sport: data.sport, sites: data.sites});
       temp.push(data);
       setMornitorData(temp);
       toast.success(`Sucess.`);
@@ -288,7 +288,7 @@ const Setting = () => {
     }
 
     try {
-      await axios.post(process.env.NEXT_PUBLIC_APIURL + 'updateMornitor', { sites: mornitorSetData.sites, sport: modifySportname});
+      await axios.post(process.env.NEXT_PUBLIC_APIURL + 'updateMonitor', { sites: mornitorSetData.sites, sport: modifySportname});
       toast.success('Success.');
     } catch (error) {
       toast.error('Failed.');

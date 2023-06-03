@@ -8,45 +8,11 @@ import Image from "next/image";
 // import Header from "./../pages/header";
 import Header from "./../component/header";
 
-const SportCard = ({ img = '', name = '', _diffmode = '0', _betmode = '0', _monit = true, _betting = false, _playmode = false, _market = '0', count = 0}) => {
-  const [diffmode, setDiffmodeState] = useState(_diffmode);
-  const [betmode, setBetmode] = useState(_betmode);
+const SportCard = ({ img = '', name = '', _monit = true, _betting = false, _playmode = false, _market = '0', count = 0}) => {
   const [monit, setMonitState] = useState(_monit);
   const [betting, setBettingState] = useState(_betting);
   const [playmode, setPlaymodeState] = useState(_playmode);
   const [market, setMarketState] = useState(_market);
-
-  const setDiffMode = async (check) => {
-    setDiffmodeState(check)
-    try {
-      const result = await axios.post(process.env.NEXT_PUBLIC_APIURL + 'setDiffMode', { sport: name, state: check });
-      console.log(result)
-
-      if (check == '1') toast.success(`Percent Diff Mode setted on ${name} matchs.`);
-      else toast.success(`Fixed Diff Mode setted on ${name} matchs.`);
-    } catch (error) {
-      toast.error(`${name} Diff Mode set error.`);
-      setDiffmodeState(!check)
-      console.error(error);
-      return;
-    }
-  }
-
-  const setBetMode = async (check) => {
-    setBetmode(check)
-    try {
-      const result = await axios.post(process.env.NEXT_PUBLIC_APIURL + 'setBetMode', { sport: name, state: check });
-      console.log(result)
-
-      if (check == '1') toast.success(`Percent Bet Mode setted on ${name} matchs.`);
-      else toast.success(`Fixed Bet Mode setted on ${name} matchs.`);
-    } catch (error) {
-      toast.error(`${name} Bet Mode set error.`);
-      setBetmode(!check)
-      console.error(error);
-      return;
-    }
-  }
 
   const setMonit = async (check) => {
     setMonitState(check)
@@ -163,7 +129,7 @@ const SportCard = ({ img = '', name = '', _diffmode = '0', _betmode = '0', _moni
     const run = async () => {
       var [price, sport] = await Promise.all([
         await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getStakeMode`),
-        await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getMornitor?sport=ALL`),
+        await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getMonitor?sport=ALL`),
       ])
 
       setStakeModeData(price.data);
@@ -262,7 +228,7 @@ const SportCard = ({ img = '', name = '', _diffmode = '0', _betmode = '0', _moni
               </div>
               <div className="h-[490px] sm:h-[440px] overflow-y-auto p-1 sm:p-2 bg-blue-50 rounded-lg">
                 {filteredData.map((val, index) => (
-                  <SportCard img={`/images/${devideString(val.sport)}.png`} name={val.sport} _diffmode={val.diffmode} _betmode={val.betmode} _monit={val.monit} _betting={val.betting} _playmode={val.playmode} _market={val.market} count = {index} key={index}/>
+                  <SportCard img={`/images/${devideString(val.sport)}.png`} name={val.sport} _monit={val.monit} _betting={val.betting} _playmode={val.playmode} _market={val.market} count = {index} key={index}/>
                 ))}
               </div>
             </div>

@@ -15,19 +15,17 @@ import ModeEditOutlineOutlinedIcon from '@mui/icons-material/ModeEditOutlineOutl
 import PauseCircleOutlineOutlinedIcon from '@mui/icons-material/PauseCircleOutlineOutlined';
 import PlayCircleFilledWhiteOutlinedIcon from '@mui/icons-material/PlayCircleFilledWhiteOutlined';
 import Button from '@mui/material/Button';
-import { CoPresentOutlined, ConstructionOutlined } from "@mui/icons-material";
 
-
-const LeagueCard = ({ _sportid = 0, _leaguid = 0, _eventid = 0, _away = '', _home, _stakemode = {}, _btodd = {away: 0, home: 0}, _psodd = {away: 0, home: 0}, count = 0, mornitId = ''}) => {
+const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stakemode = {}, _betid = '0', _btodd = {away: 0, home: 0}, _psodd = {away: 0, home: 0}, count = 0}) => {
 
   const [stakemode, setStakeMode] = useState(_stakemode);
   const [modifystakemode, setModifyStakeMode] = React.useState(false);
   const [oddlog, setOddlog] = React.useState(false);
 
-  const [diffFrom, setDiffFrom] = useState(0);
-  const [diffTo, setDiffTo] = useState(0);
-  const [stake, setStake] = useState(0);
-  const [max, setMax] = useState(0);
+  const [diffFrom, setDiffFrom] = useState(_stakemode.from);
+  const [diffTo, setDiffTo] = useState(_stakemode.to);
+  const [stake, setStake] = useState(_stakemode.stake);
+  const [max, setMax] = useState(_stakemode.max);
   const [diffmode, setMdDiffState] = useState(_stakemode.diffmode);
   const [betmode, setMdBetMode] = useState(_stakemode.betmode);
   const [runstate, setRunState] = useState(_stakemode.state);
@@ -35,21 +33,6 @@ const LeagueCard = ({ _sportid = 0, _leaguid = 0, _eventid = 0, _away = '', _hom
   const [oddpsdata, setOddPsData] = useState([]);
   const [betdata, setBetdata] = useState([]);
 
-  useEffect(() => {
-    if (_stakemode.diffmode == 0) {
-      setDiffFrom(_stakemode.fixfrom);
-      setDiffTo(_stakemode.fixto);
-      setStake(_stakemode.fixed);
-    }
-    else {
-      setDiffFrom(_stakemode.percentfrom);
-      setDiffTo(_stakemode.percentto);
-      setStake(_stakemode.percent);
-    }
-
-    setMax(_stakemode.max);
-
-  }, [])
 
   const setDiffMode = async (check) => {
     if (check == 1)
@@ -67,7 +50,7 @@ const LeagueCard = ({ _sportid = 0, _leaguid = 0, _eventid = 0, _away = '', _hom
 
   const setRun = async (check) => {
     try {
-      const result = await axios.post(process.env.NEXT_PUBLIC_APIURL + 'setRun', { sportId: _sportid, competitionId: _leaguid, eventId: _eventid, state: check });
+      const result = await axios.post(process.env.NEXT_PUBLIC_APIURL + 'setRun', { monitId: _monitid, eventId: _eventid, state: check });
       setRunState(check)
       if (check) toast.success(`Will bet on ${_away} vs ${_home} match.`);
       else toast.success(`Will stop bet on${_away} vs ${_home} match.`);
@@ -79,17 +62,11 @@ const LeagueCard = ({ _sportid = 0, _leaguid = 0, _eventid = 0, _away = '', _hom
   }
 
   const cancelModfy = () => {
-    if (stakemode.diffmode == 0) {
-      setDiffFrom(stakemode.fixfrom);
-      setDiffTo(stakemode.fixto);
-      setStake(stakemode.fixed);
-    }
-    else {
-      setDiffFrom(stakemode.percentfrom);
-      setDiffTo(stakemode.percentto);
-      setStake(stakemode.percent);
-    }
-
+    setMdDiffState(stakemode.diffmode);
+    setMdBetMode(stakemode.betmode);
+    setDiffFrom(stakemode.from);
+    setDiffTo(stakemode.to);
+    setStake(stakemode.stake);
     setMax(stakemode.max);
     setRunState(stakemode.state);
     setModifyStakeMode(false);
@@ -97,28 +74,17 @@ const LeagueCard = ({ _sportid = 0, _leaguid = 0, _eventid = 0, _away = '', _hom
 
   const okModify = React.useCallback(async() => {
     var tmp = JSON.parse(JSON.stringify(stakemode));
-
-    if (diffmode == 0){
-      tmp.fixfrom = diffFrom;
-      tmp.fixto = diffTo;
-    } else {
-      tmp.percentfrom = diffFrom;
-      tmp.percentto = diffTo;
-    }
-
-    if (betmode == 0){
-      tmp.fixed = stake;
-    } else {
-      tmp.percent = stake;
-    }
-
-    tmp.max = max;
+    
     tmp.diffmode = diffmode;
     tmp.betmode = betmode;
+    tmp.from = diffFrom;
+    tmp.to = diffTo;
+    tmp.stake = stake;
+    tmp.max = max;
     tmp.state = runstate;
 
     try {
-      const result = await axios.post(process.env.NEXT_PUBLIC_APIURL + 'setMatchStakeMode', { sportId: _sportid, competitionId: _leaguid, eventId: _eventid, stakemode: tmp });
+      const result = await axios.post(process.env.NEXT_PUBLIC_APIURL + 'setMatchStakeMode', { monitId: _monitid, eventId: _eventid, stakemode: tmp });
       toast.success(`Success.`);
       setStakeMode(tmp);
       setModifyStakeMode(false);
@@ -152,7 +118,7 @@ const LeagueCard = ({ _sportid = 0, _leaguid = 0, _eventid = 0, _away = '', _hom
 
   const openDetailDlg = async() => {
     setOddlog(true);
-    const ret = await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getMatchData?mornitId=${mornitId}&away=${_away}&home=${_home}`);
+    const ret = await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getOddData?monitId=${_monitid}&betId=${_betid}&away=${_away}&home=${_home}`);
     if (ret.data.betfair != undefined)
       setOddBtData(ret.data.betfair.market);
     if (ret.data.ps3838 != undefined)
@@ -195,26 +161,26 @@ const LeagueCard = ({ _sportid = 0, _leaguid = 0, _eventid = 0, _away = '', _hom
             <div className="flex justify-center items-center space-x-10">
               <div className=" w-36 text-center">{_away}</div>
               <div className="place-items-center">{_btodd.away}</div>
-              <div className="place-items-center">{_psodd.away}</div>
+              <div className="place-items-center">{(_psodd.away > 0 ? _psodd.away / 100 + 1 : 100 / Math.abs(_psodd.away) + 1).toFixed(2)}</div>
             </div>
       
             <div className="flex justify-center items-center space-x-10">
               <div className=" w-36 text-center" >{_home}</div>
               <div>{_btodd.home}</div>
-              <div>{_psodd.home}</div>
+              <div>{(_psodd.home > 0 ? _psodd.home / 100 + 1 : 100 / Math.abs(_psodd.home) + 1).toFixed(2)}</div>
             </div>
         </div>
       </div>
       <div className="flex pl-10 -mt-8 xl:-mt-16 space-x-4 py-4">
         <div className="flex text-center space-x-2">
           <div>{stakemode.diffmode == 0 ? 'Fixed' : 'Percent'}{':'}</div>
-          <h1>{stakemode.diffmode == 0 ? `${stakemode.fixfrom}`: `${stakemode.percentfrom}%`}</h1>
+          <h1>{stakemode.diffmode == 0 ? `${stakemode.from}`: `${stakemode.from}%`}</h1>
           <h1>~</h1>
-          <h1>{stakemode.diffmode == 0 ? `${stakemode.fixto} `: `${stakemode.percentto} %`}</h1>
+          <h1>{stakemode.diffmode == 0 ? `${stakemode.to} `: `${stakemode.to} %`}</h1>
         </div>
         <div className="flex text-center space-x-2">
           <div>Stake :</div>
-          <h1>{stakemode.betmode == 0 ? `$${stakemode.fixed}`: `${stakemode.percent}%`}</h1>
+          <h1>{stakemode.betmode == 0 ? `$${stakemode.stake}`: `${stakemode.stake}%`}</h1>
         </div>
         <div className="flex text-center space-x-2">
           <div>Max :</div>
@@ -321,13 +287,13 @@ const LeagueCard = ({ _sportid = 0, _leaguid = 0, _eventid = 0, _away = '', _hom
                   <div className="flex justify-center items-center space-x-6">
                     <div className=" w-36 text-center">{_away}</div>
                     <div className="place-items-center">{_btodd.away}</div>
-                    <div className="place-items-center">{_psodd.away}</div>
+                    <div className="place-items-center">{(_psodd.away > 0 ? _psodd.away / 100 + 1 : 100 / Math.abs(_psodd.away) + 1).toFixed(2)}</div>
                   </div>
             
                   <div className="flex justify-center items-center space-x-6">
                     <div className=" w-36 text-center" >{_home}</div>
                     <div className="place-items-center">{_btodd.home}</div>
-                    <div className="place-items-center">{_psodd.home}</div>
+                    <div className="place-items-center">{(_psodd.home > 0 ? _psodd.home / 100 + 1 : 100 / Math.abs(_psodd.home) + 1).toFixed(2)}</div>
                   </div>
                 </div>
               </div>
@@ -362,13 +328,13 @@ const LeagueCard = ({ _sportid = 0, _leaguid = 0, _eventid = 0, _away = '', _hom
                 {oddbtdata.map((el, index) => (
                   <div className="flex pt-2" key = {index}>
                     <div className="w-48 text-center">
-                      <hl>{convertToDate(el.udate)}</hl>
+                      <hl>{convertToDate(el.update)}</hl>
                     </div>
                     <div className="w-20 text-center">
-                      <hl>{el.moneyline.away.availableToBack[el.moneyline.away.availableToBack.length - 1] == undefined ? '-':el.moneyline.away.availableToBack[el.moneyline.away.availableToBack.length - 1].price}</hl>
+                      <hl>{el.moneyline.away.availableToBack[0] == undefined ? '-':el.moneyline.away.availableToBack[0].price}</hl>
                     </div>
                     <div className="w-20 text-center">
-                      <hl>{el.moneyline.home.availableToBack[el.moneyline.home.availableToBack.length - 1] == undefined ? '-':el.moneyline.home.availableToBack[el.moneyline.home.availableToBack.length - 1].price}</hl>
+                      <hl>{el.moneyline.home.availableToBack[0] == undefined ? '-':el.moneyline.home.availableToBack[0].price}</hl>
                     </div>
                     <div className="w-20 text-center">
                       <hl>{getPsAwayOdd(index)}</hl>
@@ -395,13 +361,12 @@ const [sportmenu, setSportMenu] = useState([]);
 const [competitionmenu, setCompetitionMenu] = useState([]);
 const [selectsport, setSelectSport] = useState('ALL');
 const [selectcompetition, setSelectCompetition] = useState('ALL');
-const [btgamedata, setBtGameData] = useState([]);
-const [psgamedata, setPsGameData] = useState([]);
+const [matchData, setMatchData] = useState([]);
 
 React.useEffect(() => {
   const run = async () => {
-    var [monitor, game] = await Promise.all([
-      await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getMornitor?sport=ALL`),
+    var [monitor, mactchs] = await Promise.all([
+      await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getMonitor?sport=ALL`),
       await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getMatchs?sportName=ALL&competitionName=ALL`)
     ])
 
@@ -413,8 +378,7 @@ React.useEffect(() => {
 
     setMonitMenu(monitor.data);
     setSportMenu(tmpSport);
-    setBtGameData(game.data['betfair']);
-    setPsGameData(game.data['ps3838']);
+    setMatchData(mactchs.data);
   };
 
 
@@ -424,8 +388,7 @@ React.useEffect(() => {
 useEffect(() => {
   const run = async() => {
     const ret = await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getMatchs?sportName=${selectsport}&competitionName=${selectcompetition}`);
-    setBtGameData(ret.data['betfair']);
-    setPsGameData(ret.data['ps3838']);
+    setMatchData(ret.data);
   }
 
   run();
@@ -466,31 +429,6 @@ const getSportString = (data) => {
   return extracted;
 }
 
-const getPsMarketData = (monitid, away, home) => {
-  for (var x in psgamedata) {
-    if (psgamedata[x].mornitId == monitid && psgamedata[x].away == away && psgamedata[x].home == home) {
-      var moneyline =  psgamedata[x].market[psgamedata[x].market.length - 1].moneyline;
-      var awayprice = moneyline.away > 0 ? moneyline.away / 100 + 1 : 100 / Math.abs(moneyline.away) + 1;
-      var homeprice = moneyline.home > 0 ? moneyline.home / 100 + 1 : 100 / Math.abs(moneyline.home) + 1;
-      var data = {};
-      data.away = awayprice.toFixed(2) * 1;
-      data.home = homeprice.toFixed(2) * 1;
-      return data;
-    }
-  }
-}
-
-const getBtMarketData = (btmarket) => {
-  var awayback = btmarket.market[btmarket.market.length - 1].moneyline.away.availableToBack;
-  var homeback = btmarket.market[btmarket.market.length - 1].moneyline.home.availableToBack;
-  var awayprice = awayback[awayback.length - 1] == undefined ? '-':awayback[awayback.length - 1].price;
-  var homeprice = homeback[homeback.length - 1] == undefined ? '-':homeback[homeback.length - 1].price;
-  var data = {};
-  data.away = awayprice;
-  data.home = homeprice;
-  return data;
-}
-
   return (
     <>
       <div className="h-full">
@@ -512,9 +450,9 @@ const getBtMarketData = (btmarket) => {
                   ))}
               </div>            
               <div className="sm:ml-2 h-[550px] sm:w-[700px] xl:w-[900px] overflow-y-auto mt-2 sm:mt-0 bg-blue-50 rounded-lg">
-                {btgamedata.map((el, index) => (<>
-                  {index ==0 || (index > 0 && el.competitionName!= btgamedata[index-1].competitionName) ?<div className="bg-gray-800 text-white p-2"> {el.competitionName}</div> : <div></div>}
-                  <LeagueCard _sportid = {el.sportId} _leaguid = {el.competitionId} _eventid = {el.eventId} _away = {el.away} _home = {el.home} _stakemode = {el.stakemode} _btodd = {getBtMarketData(el)} _psodd={getPsMarketData(el.mornitId, el.away, el.home)} count={index} mornitId = {el.mornitId}></LeagueCard>
+                {matchData.map((el, index) => (<>
+                  {index ==0 || (index > 0 && el.competitionName!= matchData[index-1].competitionName) ?<div className="bg-gray-800 text-white p-2"> {el.competitionName}</div> : <div></div>}
+                  <LeagueCard _monitid = {el.monitId} _eventid = {el.eventId} _away = {el.away} _home = {el.home} _stakemode = {el.stakemode} _betid = {el.betid} _btodd = {el.betfairodd} _psodd = {el.ps3838odd} count={index}></LeagueCard>
                 </>
                 ))}
               </div>     
