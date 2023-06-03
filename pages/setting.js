@@ -12,7 +12,7 @@ import DialogContent from '@mui/material/DialogContent';
 import CloseIcon from '@mui/icons-material/Close';
 
 const Setting = () => {
-  const [mornitorData, setMornitorData] = useState([]);
+  const [monitorData, setMonitorData] = useState([]);
   const [sportBt, setSportBt] = useState({});
   const [sportPs, setSportPs] = useState({});
   const [sportBtname, setSportBtname] = useState('2002 Winter Olympics');
@@ -65,12 +65,12 @@ const Setting = () => {
     const run = async () => {
 
       var [mornitor, sport, league] = await Promise.all([
-        await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getMornitor?sport=ALL`),
+        await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getMonitor?sport=ALL`),
         await axios.get(process.env.NEXT_PUBLIC_APIURL + 'getSport'),
         await axios.get(process.env.NEXT_PUBLIC_APIURL + 'getLeague')
       ])
     
-      setMornitorData(mornitor.data);
+      setMonitorData(mornitor.data);
       setSportBt(sortObject(sport.data.betfair));
       setSportPs(sortObject(sport.data.ps3838));
       setLeagueBt(sortObject(league.data.betfair));
@@ -183,21 +183,21 @@ const Setting = () => {
   }
 
   const removeSport = React.useCallback(async (index, name) => {
-    var temp = JSON.parse(JSON.stringify(mornitorData));
+    var temp = JSON.parse(JSON.stringify(monitorData));
 
     try {
       const result = await axios.post(process.env.NEXT_PUBLIC_APIURL + 'removeMonitor', { sport: name });
       temp.splice(index, 1);
       toast.success(`Sport ${name} removed.`);
-      setMornitorData(temp);
+      setMonitorData(temp);
     } catch (error) {
       console.error(error);
     }
-  }, [mornitorData])
+  }, [monitorData])
 
   const addMornitor = React.useCallback(async() => {
 
-    var temp = JSON.parse(JSON.stringify(mornitorData));
+    var temp = JSON.parse(JSON.stringify(monitorData));
 
     if (sportName == '') {
       toast.warn(`Please input sport name for mornitor.`);
@@ -258,7 +258,7 @@ const Setting = () => {
     try {
       const result = await axios.post(process.env.NEXT_PUBLIC_APIURL + 'addMonitor', { sport: data.sport, sites: data.sites});
       temp.push(data);
-      setMornitorData(temp);
+      setMonitorData(temp);
       toast.success(`Sucess.`);
       const checkboxes = document.querySelectorAll('input[type="checkbox"]');
       checkboxes.forEach(checkbox => checkbox.checked = false);
@@ -272,7 +272,7 @@ const Setting = () => {
       console.error(error);
     } 
 
-  },[mornitorData, sportName, sportBtname, sportPsname, leagueBtids, leaguePsids, leagueBtname, leaguePsname])
+  },[monitorData, sportName, sportBtname, sportPsname, leagueBtids, leaguePsids, leagueBtname, leaguePsname])
 
   const devideString = (data) => {
     const val = data.split("-");
@@ -400,7 +400,7 @@ const Setting = () => {
                 <h1>Sport</h1>
               </div>
               <div className="h-[530px]	overflow-y-auto bg-blue-50 p-1 lg:p-2 rounded-lg">
-                {mornitorData.map((val, index) => (
+                {monitorData.map((val, index) => (
                   <div className="items-center justify-center p-2 mb-1 lg:mb-2 text-blue-800 rounded-lg text-base bg-orange-400 hover:bg-orange-500 dark:bg-gray-800 hover:text-blue-900 dark:text-blue-400 flex" key={index}>
                     <div className="flex justify-between items-center	w-full text-lg font-bold">
                     <Image className=" ml-1 lg:ml-2 rounded-lg" width="25" height="25" src={`/images/${devideString(val.sport)}.png`} alt="Rounded avatar"></Image>
