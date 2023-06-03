@@ -5,8 +5,8 @@ import { useEffect } from "react";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Image from "next/image";
-// import Header from "./../pages/header";
-import Header from "./../component/header";
+import Header from "./../pages/header";
+// import Header from "./../component/header";
 
 const SportCard = ({ img = '', name = '', _monit = true, _betting = false, _playmode = false, _market = '0', count = 0}) => {
   const [monit, setMonitState] = useState(_monit);

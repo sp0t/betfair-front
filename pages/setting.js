@@ -4,8 +4,8 @@ import axios from 'axios'
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Image from "next/image";
-// import Header from "./../pages/header";
-import Header from "./../component/header";
+import Header from "./../pages/header";
+// import Header from "./../component/header";
 import { sportNmaes } from "./../const/const";
 import Dialog from '@mui/material/Dialog';
 import DialogContent from '@mui/material/DialogContent';
