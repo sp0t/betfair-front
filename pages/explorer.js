@@ -199,7 +199,7 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
           </div>
           <div className="text-white pt-5">
             <div className="flex space-x-3 px-4 mb-2">
-              <h1 className="mr-3.5">Diff</h1>
+              <h1 className="mr-3.5">{diffmode == 0 ? 'Diff($)':'Diff'}</h1>
               <select className="cursor-pointer block w-22 p-1 overflow-auto text-sm text-center bg-sky-950 text-white border rounded-md" onChange={(e) => setDiffMode(e.target.value)}>
                 <option className="cursor-pointer" value={0} selected = {diffmode == 0}>Fiexd</option>
                 <option className="cursor-pointer" value={1} selected = {diffmode == 1}>Percent</option>
@@ -207,10 +207,10 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
               <input type="number" className="text-sm w-20 text-center bg-sky-950 text-white border rounded-md" min="0" value={diffFrom} required onChange={(e) => setDiffFrom(e.target.value)}></input>
               <h1 className="px-6">~</h1>
               <input type="number" className="text-sm w-20 text-center bg-sky-950 text-white border rounded-md" min="0" value={diffTo} required onChange={(e) => setDiffTo(e.target.value)}></input>
-              <h1 className="">{diffmode == 0 ? '($)':'(%)'}</h1>
+              <h1 className="">{diffmode == 0 ? '':'(%)'}</h1>
             </div>
             <div className="flex space-x-3 px-4 mb-2">
-              <h1>Stake</h1>
+              <h1>{betmode == 0 ? 'Stake($)':'Stake'}</h1>
               <select className="cursor-pointer block w-22 p-1 overflow-auto text-sm text-center bg-sky-950 text-white border rounded-md" onChange={(e) => setBetMode(e.target.value)}>
                 <option className="cursor-pointer" value={0} selected = {betmode == 0}>Fiexd</option>
                 <option className="cursor-pointer" value={1} selected = {betmode == 1}>Percent</option>
@@ -218,12 +218,12 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
               <div className="flex">
                 <input type="number" className="text-sm w-20 text-center bg-sky-950 text-white border rounded-md" min="0" value={stake} required onChange={(e) => setStake(e.target.value)}></input>
               </div>
-              <h1 className="">{betmode == 0 ? '($)':'(%)'}</h1>
-              <h1 className="mr-2">Max</h1>
+              <h1 className="">{betmode == 0 ? '':'(%)'}</h1>
+              <h1 className="mr-2">{betmode == 0 ? 'Max($)':'Max'}</h1>
               <div className="flex">
                 <input type="number" className="py-1 text-sm w-20 text-center bg-sky-950 text-white border rounded-md" min="0" value={max} required onChange={(e) => setMax(e.target.value)}></input>
               </div>
-              <h1 className="">($)</h1>
+              <h1 className="">{betmode == 0 ? '':'(%)'}</h1>
             </div>
           </div>
           <div className="flex justify-center pt-2 space-x-10 sm:space-x-16">
@@ -299,10 +299,10 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
             </div>
             <div className="flex border-b-2 sm:space-x-5 justify-start pb-2">
               <div className="w-2/3 text-end pr-8">
-                PS3838
+                Betfair
               </div>
               <div className="w-1/3 text-center">
-                Betfair
+                PS3838
               </div>
             </div>
             <div>
@@ -364,10 +364,12 @@ const [matchData, setMatchData] = useState([]);
 
 React.useEffect(() => {
   const run = async () => {
-    var [monitor, mactchs] = await Promise.all([
-      await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getMonitor?sport=ALL`),
-      await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getMatchs?sportName=ALL&competitionName=ALL`)
-    ])
+    // var [monitor, mactchs] = await Promise.all([
+    //   await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getMonitor?sport=ALL`),
+    //   await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getMatchs?sportName=ALL&competitionName=ALL`)
+    // ])
+    var monitor = await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getMonitor?sport=ALL`);
+    var matchs = await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getMatchs?sportName=ALL&competitionName=ALL`);
 
     var tmpSport = [];
     for (var x in monitor.data) {
@@ -377,7 +379,7 @@ React.useEffect(() => {
 
     setMonitMenu(monitor.data);
     setSportMenu(tmpSport);
-    setMatchData(mactchs.data);
+    setMatchData(matchs.data);
   };
 
 
