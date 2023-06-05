@@ -127,6 +127,7 @@ const SportCard = ({ img = '', name = '', _monit = true, _betting = false, _play
 
   React.useEffect(() => {
     const run = async () => {
+      console.log('===========================API URL=>', process.env.NEXT_PUBLIC_APIURL);
       var [price, sport] = await Promise.all([
         await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getStakeMode`),
         await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getMonitor?sport=ALL`),
