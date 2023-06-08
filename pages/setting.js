@@ -163,15 +163,15 @@ const SportCard = ({ img = '', name = '', _monit = true, _betting = false, _play
       var [price, sport, balance] = await Promise.all([
         await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getStakeMode`),
         await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getMonitor?sport=ALL`),
-        // await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getBalance`)
+        await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getBalance`)
       ])
 
       setStakeModeData(price.data);
       setSportData(sport.data);
       setFilteredData(sport.data);
-      // setTotalFund(balance.data.total);
-      // setMaxFund(balance.data.max);
-      // setAvailableFund(balance.data.available);
+      setTotalFund(balance.data.total);
+      setMaxFund(balance.data.max);
+      setAvailableFund(balance.data.available);
     };
 
     run();
