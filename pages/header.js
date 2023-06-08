@@ -27,27 +27,33 @@ const Header = () => {
       <div className="hidden w-full flex-grow sm:flex sm:items-center text-end sm:w-auto">
         <div className="text-base sm:text-lg sm:flex-grow mr-7">
           <a href="/" className="block mt-4 sm:inline-block lg:mt-0 text-teal-200 hover:text-white mr-4">
-            Home
+            Explorer
           </a>
           <a href="/setting" className="block mt-4 sm:inline-block lg:mt-0 text-teal-200 hover:text-white mr-4">
             Setting
           </a>
-          <a href="/explorer" className="block mt-4 sm:inline-block lg:mt-0 text-teal-200 hover:text-white">
-            Explorer
+          <a href="/sport" className="block mt-4 sm:inline-block lg:mt-0 text-teal-200 hover:text-white mr-4">
+            Sport
+          </a>
+          <a href="/formula" className="block mt-4 sm:inline-block lg:mt-0 text-teal-200 hover:text-white">
+            Formula
           </a>
         </div>
       </div>
 
       {menustate && <div id = 'togglebar' className="w-full sm:items-center text-end sm:w-auto" onMouseEnter={() => handleMouseEnter()} onMouseLeave={() => handleMouseLeave()}>
         <div className="text-lg">
-          <a href="/" className="block mt-4 sm:inline-block lg:mt-0 text-teal-200 hover:text-white mr-4">
-            Home
+          <a href="/" className="block mt-4 sm:inline-block lg:mt-0 text-teal-200 hover:text-white">
+            Explorer
           </a>
-          <a href="/setting" className="block mt-4 sm:inline-block lg:mt-0 text-teal-200 hover:text-white mr-4">
+          <a href="/setting" className="block mt-4 sm:inline-block lg:mt-0 text-teal-200 hover:text-white">
             Setting
           </a>
-          <a href="/explorer" className="block mt-4 sm:inline-block lg:mt-0 text-teal-200 hover:text-white">
-            Explorer
+          <a href="/sport" className="block mt-4 sm:inline-block lg:mt-0 text-teal-200 hover:text-white">
+            Sport
+          </a>
+          <a href="/formula" className="block mt-4 sm:inline-block lg:mt-0 text-teal-200 hover:text-white">
+            Formula
           </a>
         </div>
       </div>}
