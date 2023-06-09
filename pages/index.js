@@ -463,6 +463,7 @@ React.useEffect(() => {
     var parseMsg = JSON.parse(event.data);
     if (parseMsg.type == 'SportLeagueName') {
       console.log('SportLeagueName=================>', parseMsg.data);
+      setMatchData(parseMsg.data);
     }
   };
 
@@ -478,9 +479,8 @@ React.useEffect(() => {
 
 React.useEffect(() => {
   const run = async () => {
-    var [monitor, matchs] = await Promise.all([
+    var [monitor] = await Promise.all([
       await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getMonitor?sport=ALL`),
-      await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getMatchs?sportName=ALL&competitionName=ALL`)
     ])
 
     var tmpSport = [];
@@ -491,7 +491,6 @@ React.useEffect(() => {
 
     setMonitMenu(monitor.data);
     setSportMenu(tmpSport);
-    setMatchData(matchs.data);
   };
 
 
