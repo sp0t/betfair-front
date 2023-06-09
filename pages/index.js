@@ -221,9 +221,6 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
   }
 
   const closeDetaildlg = () => {
-    websocket.onclose = () => {
-      console.log('WebSocket disconnected');
-    };
     setOddlog(false);
     return () => {
       websocket.close();
@@ -481,8 +478,9 @@ const [matchData, setMatchData] = useState([]);
 const [websocket, setWebsocket] = useState(null);
 
 React.useEffect(() => {
-  initSocket();
-  var socket = getScoket();
+  // initSocket();
+  // var socket = getScoket();
+  const socket = new WebSocket(process.env.NEXT_PUBLIC_WEBSOCKETURL);
   setWebsocket(socket);
 
   socket.onopen = () => {
