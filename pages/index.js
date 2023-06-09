@@ -34,6 +34,7 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
   const [odddata, setOddData] = useState([]);
   const [formulas, setFormula] = useState([]);
   const [equation, setEquation] = useState('f = (p * (d - 1) -q) / (d - 1)');
+  const [websocket, setWebsocket] = useState(null);
 
   useEffect(()=>{
     setStakeMode(_stakemode)
@@ -44,7 +45,9 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
       var ret = await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getFormula`);
       setFormula(ret.data);
     }
-  
+
+    var socket = getSocket();
+    setWebsocket(socket);  
     run();
   }, []);
 
@@ -119,9 +122,7 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
   const openDetailDlg = async() => {
     setOddlog(true);
 
-    var socket = getScoket();
-
-    if (socket && socket.readyState === WebSocket.OPEN) {
+    if (websocket && websocket.readyState === WebSocket.OPEN) {
       var ret = {
         type: 'BetInformation',
         monitid: _monitid,
@@ -129,10 +130,10 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
         away: _away, 
         home: _home
       };
-      socket.send(JSON.stringify(ret));
+      websocket.send(JSON.stringify(ret));
     }
 
-    socket.onmessage = (event) => {
+    websocket.onmessage = (event) => {
       var parseMsg = JSON.parse(event.data);
       if (parseMsg.type == 'BetInformation') {
         var ret = parseMsg.data;
