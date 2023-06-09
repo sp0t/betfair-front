@@ -478,9 +478,9 @@ const [matchData, setMatchData] = useState([]);
 const [websocket, setWebsocket] = useState(null);
 
 React.useEffect(() => {
-  // initSocket();
-  // var socket = getScoket();
-  const socket = new WebSocket(process.env.NEXT_PUBLIC_WEBSOCKETURL);
+  initSocket();
+  var socket = getScoket();
+  // const socket = new WebSocket(process.env.NEXT_PUBLIC_WEBSOCKETURL);
   setWebsocket(socket);
 
   socket.onopen = () => {
