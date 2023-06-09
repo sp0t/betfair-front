@@ -14,6 +14,7 @@ import ModeEditOutlineOutlinedIcon from '@mui/icons-material/ModeEditOutlineOutl
 import PauseCircleOutlineOutlinedIcon from '@mui/icons-material/PauseCircleOutlineOutlined';
 import PlayCircleFilledWhiteOutlinedIcon from '@mui/icons-material/PlayCircleFilledWhiteOutlined';
 import Button from '@mui/material/Button';
+import { initSocket, getScoket } from '../const/wesocket';
 
 const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stakemode = {}, _betid = '0', _btodd = {away: 0, home: 0}, _psodd = {away: 0, home: 0}, count = 0}) => {
 
@@ -33,6 +34,10 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
   const [odddata, setOddData] = useState([]);
   const [formulas, setFormula] = useState([]);
   const [equation, setEquation] = useState('f = (p * (d - 1) -q) / (d - 1)');
+
+  useEffect(()=>{
+    setStakeMode(_stakemode)
+  },[_stakemode])
 
   useEffect( () => {
     const run = async() => {
@@ -113,90 +118,116 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
   
   const openDetailDlg = async() => {
     setOddlog(true);
-    var tmpbtdata = [];
-    var tmppsdata = [];
-    const ret = await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getOddData?monitId=${_monitid}&betId=${_betid}&away=${_away}&home=${_home}`);
-    if (ret.data.betfair != undefined)
-    {
-      tmpbtdata = ret.data.betfair.market;
-    }
-    if (ret.data.ps3838 != undefined) {
-      tmppsdata = ret.data.ps3838.market;
-    }
-    if (ret.data)
-      setBetdata(ret.data.betdata);
-    var oddtemp = [];
-    var x = 0;
-    var y = 0;
 
+    var socket = getScoket();
+
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      var ret = {
+        type: 'BetInformation',
+        monitid: _monitid,
+        betid: _betid,
+        away: _away, 
+        home: _home
+      };
+      socket.send(JSON.stringify(ret));
+    }
+
+    socket.onmessage = (event) => {
+      var parseMsg = JSON.parse(event.data);
+      if (parseMsg.type == 'BetInformation') {
+        var ret = parseMsg.data;
+        var tmpbtdata = [];
+        var tmppsdata = [];
+        if (ret.data.betfair != undefined)
+        {
+          tmpbtdata = ret.data.betfair.market;
+        }
+        if (ret.data.ps3838 != undefined) {
+          tmppsdata = ret.data.ps3838.market;
+        }
+        if (ret.data)
+          setBetdata(ret.data.betdata);
+        var oddtemp = [];
+        var x = 0;
+        var y = 0;
     
-
-    while (x < tmpbtdata.length || y < tmppsdata.length) {
-      var data = {};
-      const date1 = new Date(tmpbtdata[x]).update;
-      const date2 = new Date(tmppsdata[y]).update;
-
-      data.ps3838 = {};
-      data.betfair = {};
-
-      if (date1 > date2) {
-        data.gamedate = tmppsdata[y].update;
-        data.ps3838 = tmppsdata[y].moneyline;
-
-        if (x == 0) {
-          data.betfair.away = tmpbtdata[0].moneyline.away.availableToBack[0].price;
-          data.betfair.home = tmpbtdata[0].moneyline.home.availableToBack[0].price;
-        } else {
-          data.betfair.away = tmpbtdata[x-1].moneyline.away.availableToBack[0].price;
-          data.betfair.home = tmpbtdata[x-1].moneyline.home.availableToBack[0].price;
-        }
-
-        y++;
         
-      }else if (date1 < date2) {
-        data.gamedate = tmpbtdata[x].update;
-        data.betfair.away = tmpbtdata[x].moneyline.away.availableToBack[0].price;
-        data.betfair.home = tmpbtdata[x].moneyline.home.availableToBack[0].price;
-
-        if (y == 0) {
-          data.ps3838 = tmppsdata[0].moneyline;
-        } else {
-          data.ps3838 = tmppsdata[y-1].moneyline;
+    
+        while (x < tmpbtdata.length || y < tmppsdata.length) {
+          var data = {};
+          const date1 = new Date(tmpbtdata[x]).update;
+          const date2 = new Date(tmppsdata[y]).update;
+    
+          data.ps3838 = {};
+          data.betfair = {};
+    
+          if (date1 > date2) {
+            data.gamedate = tmppsdata[y].update;
+            data.ps3838 = tmppsdata[y].moneyline;
+    
+            if (x == 0) {
+              data.betfair.away = tmpbtdata[0].moneyline.away.availableToBack[0].price;
+              data.betfair.home = tmpbtdata[0].moneyline.home.availableToBack[0].price;
+            } else {
+              data.betfair.away = tmpbtdata[x-1].moneyline.away.availableToBack[0].price;
+              data.betfair.home = tmpbtdata[x-1].moneyline.home.availableToBack[0].price;
+            }
+    
+            y++;
+            
+          }else if (date1 < date2) {
+            data.gamedate = tmpbtdata[x].update;
+            data.betfair.away = tmpbtdata[x].moneyline.away.availableToBack[0].price;
+            data.betfair.home = tmpbtdata[x].moneyline.home.availableToBack[0].price;
+    
+            if (y == 0) {
+              data.ps3838 = tmppsdata[0].moneyline;
+            } else {
+              data.ps3838 = tmppsdata[y-1].moneyline;
+            }
+    
+            x++;
+          } else {
+    
+            if (tmpbtdata[x] == undefined) {
+              data.gamedate = tmppsdata[y].update;
+              data.betfair.away = tmpbtdata[x-1].moneyline.away.availableToBack[0].price;
+              data.betfair.home = tmpbtdata[x-1].moneyline.home.availableToBack[0].price;
+              data.ps3838 = tmppsdata[y].moneyline;
+              y++;
+            } else if (tmppsdata[y] == undefined) {
+              data.gamedate = tmpbtdata[x].update;
+              data.betfair.away = tmpbtdata[x].moneyline.away.availableToBack[0].price;
+              data.betfair.home = tmpbtdata[x].moneyline.home.availableToBack[0].price;
+              data.ps3838 = tmppsdata[y-1].moneyline;
+              x++;
+            } else {
+              data.gamedate = tmpbtdata[x].update;
+              data.betfair.away = tmpbtdata[x].moneyline.away.availableToBack[0].price;
+              data.betfair.home = tmpbtdata[x].moneyline.home.availableToBack[0].price;
+              data.ps3838 = tmppsdata[y].moneyline;
+              x++;
+              y++;
+            }
+          }
+    
+          oddtemp.push(data);
         }
-
-        x++;
-      } else {
-
-        if (tmpbtdata[x] == undefined) {
-          data.gamedate = tmppsdata[y].update;
-          data.betfair.away = tmpbtdata[x-1].moneyline.away.availableToBack[0].price;
-          data.betfair.home = tmpbtdata[x-1].moneyline.home.availableToBack[0].price;
-          data.ps3838 = tmppsdata[y].moneyline;
-          y++;
-        } else if (tmppsdata[y] == undefined) {
-          data.gamedate = tmpbtdata[x].update;
-          data.betfair.away = tmpbtdata[x].moneyline.away.availableToBack[0].price;
-          data.betfair.home = tmpbtdata[x].moneyline.home.availableToBack[0].price;
-          data.ps3838 = tmppsdata[y-1].moneyline;
-          x++;
-        } else {
-          data.gamedate = tmpbtdata[x].update;
-          data.betfair.away = tmpbtdata[x].moneyline.away.availableToBack[0].price;
-          data.betfair.home = tmpbtdata[x].moneyline.home.availableToBack[0].price;
-          data.ps3838 = tmppsdata[y].moneyline;
-          x++;
-          y++;
-        }
+    
+        setOddData(oddtemp);
       }
+    };
 
-      oddtemp.push(data);
-    }
-
-    setOddData(oddtemp);
   }
 
   const closeDetaildlg = () => {
+    websocket.onclose = () => {
+      console.log('WebSocket disconnected');
+    };
     setOddlog(false);
+    return () => {
+      websocket.close();
+    };
   }
 
   return (
@@ -322,9 +353,9 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
         </DialogContent>
 
       </Dialog>
-      <Dialog onClose={() => closeDetaildlg(false)} open={oddlog}>
+      <Dialog onClose={() => closeDetaildlg()} open={oddlog}>
         <DialogContent className="oddlog bg-sky-950 pt-10">
-          <div className="absolute top-2 right-2 p-1 cursor-pointer hover:bg-slate-400 rounded-full" onClick={() => closeDetaildlg(false)}>
+          <div className="absolute top-2 right-2 p-1 cursor-pointer hover:bg-slate-400 rounded-full" onClick={() => closeDetaildlg()}>
             <CloseIcon className="text-white"></CloseIcon>
           </div>
           <div className="text-white">
@@ -450,8 +481,8 @@ const [matchData, setMatchData] = useState([]);
 const [websocket, setWebsocket] = useState(null);
 
 React.useEffect(() => {
-  console.log('websocket=========================', process.env.NEXT_PUBLIC_WEBSOCKETURL)
-  const socket = new WebSocket(process.env.NEXT_PUBLIC_WEBSOCKETURL);
+  initSocket();
+  var socket = getScoket();
   setWebsocket(socket);
 
   socket.onopen = () => {
@@ -459,10 +490,8 @@ React.useEffect(() => {
   };
 
   socket.onmessage = (event) => {
-    console.log('Received message:', event.data);
     var parseMsg = JSON.parse(event.data);
     if (parseMsg.type == 'SportLeagueName') {
-      console.log('SportLeagueName=================>', parseMsg.data);
       setMatchData(parseMsg.data);
     }
   };
@@ -547,7 +576,7 @@ const getSportString = (data) => {
     <>
       <div className="h-full">
         <Header />
-        {matchData.length != 0?<div>{matchData.stakemode.update}</div>:<div>NONE</div>}
+        {matchData.length != 0?<div className="text-end w-full">{matchData[0].update}</div>:<div  className="text-end w-full">NONE</div>}
         <div className="bg-gradient-to-r from-green-600 to-[#233d26] min-h-screen">
           <div className="pt-10 sm:pt-20 m-auto justify-center mr-1 lg:flex">
             <div className="border-solid border-rose-600 p-2 bg-orange-600 rounded-lg justify-center sm:flex">
