@@ -306,7 +306,7 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
               <h1 className="sm:pl-2 w-20 sm:w-24 text-end">{'Formula :'}</h1>
               <select className="cursor-pointer block p-1 w-full overflow-auto text-sm text-center bg-sky-950 text-white border rounded-md" onChange={(e) => setEquation(e.target.value)}>
               {formulas.map((el, index) => (
-                <option className="cursor-pointer" value={el.formula} selected = {el.formula == equation} >{el.formula}</option>
+                <option className="cursor-pointer" value={el.formula} selected = {el.formula == equation} key = {index} >{el.formula}</option>
               ))}
               </select>
             </div>
@@ -447,6 +447,35 @@ const [selectsport, setSelectSport] = useState('ALL');
 const [selectcompetition, setSelectCompetition] = useState('ALL');
 const [matchData, setMatchData] = useState([]);
 
+const [websocket, setWebsocket] = useState(null);
+
+React.useEffect(() => {
+  console.log('websocket=========================', process.env.NEXT_PUBLIC_WEBSOCKETURL)
+  const socket = new WebSocket(process.env.NEXT_PUBLIC_WEBSOCKETURL);
+  setWebsocket(socket);
+
+  socket.onopen = () => {
+    console.log('WebSocket connected');
+  };
+
+  socket.onmessage = (event) => {
+    console.log('Received message:', event.data);
+    var parseMsg = JSON.parse(event.data);
+    if (parseMsg.type == 'SportLeagueName') {
+      console.log('SportLeagueName=================>', parseMsg.data);
+    }
+  };
+
+  socket.onclose = () => {
+    console.log('WebSocket disconnected');
+  };
+
+  return () => {
+    socket.close();
+  };
+}, []);
+
+
 React.useEffect(() => {
   const run = async () => {
     var [monitor, matchs] = await Promise.all([
@@ -470,12 +499,14 @@ React.useEffect(() => {
 }, []);
 
 useEffect(() => {
-  const run = async() => {
-    const ret = await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getMatchs?sportName=${selectsport}&competitionName=${selectcompetition}`);
-    setMatchData(ret.data);
+  if (websocket && websocket.readyState === WebSocket.OPEN) {
+    var ret = {
+      type: 'SportLeagueName',
+      sportname: selectsport,
+      competitionname: selectcompetition
+    };
+    websocket.send(JSON.stringify(ret));
   }
-
-  run();
 }, [selectsport, selectcompetition])
 
 useEffect(() => {
