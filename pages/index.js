@@ -547,6 +547,7 @@ const getSportString = (data) => {
     <>
       <div className="h-full">
         <Header />
+        {matchData.length != 0?<div>{matchData.stakemode.update}</div>:<div>NONE</div>}
         <div className="bg-gradient-to-r from-green-600 to-[#233d26] min-h-screen">
           <div className="pt-10 sm:pt-20 m-auto justify-center mr-1 lg:flex">
             <div className="border-solid border-rose-600 p-2 bg-orange-600 rounded-lg justify-center sm:flex">
