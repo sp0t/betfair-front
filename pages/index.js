@@ -136,6 +136,7 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
     websocket.onmessage = (event) => {
       var parseMsg = JSON.parse(event.data);
       if (parseMsg.type == 'BetInformation') {
+        console.log('========================>BetInformation', parseMsg.data)
         var ret = parseMsg.data;
         var tmpbtdata = [];
         var tmppsdata = [];
