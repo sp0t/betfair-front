@@ -477,31 +477,35 @@ const [matchData, setMatchData] = useState([]);
 
 const [websocket, setWebsocket] = useState(null);
 
-React.useEffect(async() => {
-  await initSocket();
-  var socket = getSocket();
-  setWebsocket(socket);
-  // const socket = new WebSocket(process.env.NEXT_PUBLIC_WEBSOCKETURL);
+React.useEffect(() => {
+  const run = async() => {
+    await initSocket();
+    var socket = getSocket();
+    setWebsocket(socket);
+    // const socket = new WebSocket(process.env.NEXT_PUBLIC_WEBSOCKETURL);
+    
   
+    // socket.onopen = () => {
+    //   console.log('WebSocket connected');
+    // };
+  
+    socket.onmessage = (event) => {
+      var parseMsg = JSON.parse(event.data);
+      if (parseMsg.type == 'SportLeagueName') {
+        setMatchData(parseMsg.data);
+      }
+    };
+  
+    socket.onclose = () => {
+      console.log('WebSocket disconnected');
+    };
+  
+    return () => {
+      socket.close();
+    };
+  }
 
-  // socket.onopen = () => {
-  //   console.log('WebSocket connected');
-  // };
-
-  socket.onmessage = (event) => {
-    var parseMsg = JSON.parse(event.data);
-    if (parseMsg.type == 'SportLeagueName') {
-      setMatchData(parseMsg.data);
-    }
-  };
-
-  socket.onclose = () => {
-    console.log('WebSocket disconnected');
-  };
-
-  return () => {
-    socket.close();
-  };
+  run();
 }, []);
 
 
