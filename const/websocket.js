@@ -1,22 +1,22 @@
 let wssocket;
 
-const initSocket = () => {
-    if (wssocket == null) {
-        const socket = new WebSocket(process.env.NEXT_PUBLIC_WEBSOCKETURL);
-        if (socket != null) {
-            wssocket = socket;
-            return true;
-        }
-        else
-            return false;
-    }
+export const initSocket = () => {
+  if (wssocket == null) {
+    const socket = new WebSocket(process.env.NEXT_PUBLIC_WEBSOCKETURL);
+    return new Promise((resolve, reject) => {
+      socket.onopen = () => {
+        wssocket = socket;
+        resolve(wssocket);
+      };
+      socket.onerror = (error) => {
+        reject(error);
+      };
+    });
+  }
 
-    return true;
-}
+  return Promise.resolve(wssocket);
+};
 
-const getScoket = () => {
-    return wssocket;
-}
-
-module.exports.initSocket = initSocket;
-module.exports.getScoket = getScoket;
+export const getSocket = () => {
+  return wssocket;
+};

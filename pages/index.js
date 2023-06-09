@@ -14,7 +14,7 @@ import ModeEditOutlineOutlinedIcon from '@mui/icons-material/ModeEditOutlineOutl
 import PauseCircleOutlineOutlinedIcon from '@mui/icons-material/PauseCircleOutlineOutlined';
 import PlayCircleFilledWhiteOutlinedIcon from '@mui/icons-material/PlayCircleFilledWhiteOutlined';
 import Button from '@mui/material/Button';
-const { initSocket, getSocket } = require('../const/websocket');
+import { initSocket, getSocket } from '../const/websocket';
 
 const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stakemode = {}, _betid = '0', _btodd = {away: 0, home: 0}, _psodd = {away: 0, home: 0}, count = 0}) => {
 
@@ -478,28 +478,38 @@ const [matchData, setMatchData] = useState([]);
 const [websocket, setWebsocket] = useState(null);
 
 React.useEffect(() => {
-  initSocket();
-  var socket = getScoket();
-  // const socket = new WebSocket(process.env.NEXT_PUBLIC_WEBSOCKETURL);
-  setWebsocket(socket);
-
-  socket.onopen = () => {
-    console.log('WebSocket connected');
+  const connectWebSocket = async () => {
+    try {
+      const socket = await initSocket();
+      setWebsocket(socket);
+      console.log('WebSocket connected');
+      // Use the socket here
+    } catch (error) {
+      console.error('Failed to connect to WebSocket:', error);
+    }
   };
 
-  socket.onmessage = (event) => {
+  connectWebSocket();
+  // const socket = new WebSocket(process.env.NEXT_PUBLIC_WEBSOCKETURL);
+  
+
+  // socket.onopen = () => {
+  //   console.log('WebSocket connected');
+  // };
+
+  websocket.onmessage = (event) => {
     var parseMsg = JSON.parse(event.data);
     if (parseMsg.type == 'SportLeagueName') {
       setMatchData(parseMsg.data);
     }
   };
 
-  socket.onclose = () => {
+  websocket.onclose = () => {
     console.log('WebSocket disconnected');
   };
 
   return () => {
-    socket.close();
+    websocket.close();
   };
 }, []);
 
