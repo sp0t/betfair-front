@@ -136,19 +136,18 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
     websocket.onmessage = (event) => {
       var parseMsg = JSON.parse(event.data);
       if (parseMsg.type == 'BetInformation') {
-        console.log('========================>BetInformation', parseMsg.data)
         var ret = parseMsg.data;
         var tmpbtdata = [];
         var tmppsdata = [];
-        if (ret.data.betfair != undefined)
+        if (ret.betfair != undefined)
         {
-          tmpbtdata = ret.data.betfair.market;
+          tmpbtdata = ret.betfair.market;
         }
-        if (ret.data.ps3838 != undefined) {
-          tmppsdata = ret.data.ps3838.market;
+        if (ret.ps3838 != undefined) {
+          tmppsdata = ret.ps3838.market;
         }
         if (ret.data)
-          setBetdata(ret.data.betdata);
+          setBetdata(ret.betdata);
         var oddtemp = [];
         var x = 0;
         var y = 0;
