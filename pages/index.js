@@ -477,19 +477,10 @@ const [matchData, setMatchData] = useState([]);
 
 const [websocket, setWebsocket] = useState(null);
 
-React.useEffect(() => {
-  const connectWebSocket = async () => {
-    try {
-      const socket = await initSocket();
-      setWebsocket(socket);
-      console.log('WebSocket connected');
-      // Use the socket here
-    } catch (error) {
-      console.error('Failed to connect to WebSocket:', error);
-    }
-  };
-
-  connectWebSocket();
+React.useEffect(async() => {
+  await initSocket();
+  var socket = getSocket();
+  setWebsocket(socket);
   // const socket = new WebSocket(process.env.NEXT_PUBLIC_WEBSOCKETURL);
   
 
@@ -497,19 +488,19 @@ React.useEffect(() => {
   //   console.log('WebSocket connected');
   // };
 
-  websocket.onmessage = (event) => {
+  socket.onmessage = (event) => {
     var parseMsg = JSON.parse(event.data);
     if (parseMsg.type == 'SportLeagueName') {
       setMatchData(parseMsg.data);
     }
   };
 
-  websocket.onclose = () => {
+  socket.onclose = () => {
     console.log('WebSocket disconnected');
   };
 
   return () => {
-    websocket.close();
+    socket.close();
   };
 }, []);
 
