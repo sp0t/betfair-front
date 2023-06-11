@@ -495,6 +495,10 @@ React.useEffect(() => {
       if (parseMsg.type == 'SportLeagueName') {
         setMatchData(parseMsg.data);
       }
+
+      if (parseMsg.type == 'betalarm') {
+        toast.success(parseMsg.data);
+      }
     };
   
     socket.onclose = () => {
