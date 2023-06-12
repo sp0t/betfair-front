@@ -223,9 +223,6 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
 
   const closeDetaildlg = () => {
     setOddlog(false);
-    return () => {
-      websocket.close();
-    };
   }
 
   return (
