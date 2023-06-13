@@ -351,8 +351,8 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
             <div className="flex space-x-1 sm:space-x-3 sm:px-4 mb-2">
               <h1 className="w-16 sm:w-20 text-end">{'Diff :'}</h1>
               <select className="cursor-pointer block w-22 p-1 overflow-auto text-sm text-center bg-sky-950 text-white border rounded-md" onChange={(e) => setDiffMode(e.target.value)}>
-                <option className="cursor-pointer" value={0} selected = {diffmode == 0}>Fiexd</option>
-                <option className="cursor-pointer" value={1} selected = {diffmode == 1}>Percent</option>
+                <option className="cursor-pointer" defaultValue={0} selected = {diffmode == 0}>Fiexd</option>
+                <option className="cursor-pointer" defaultValue={1} selected = {diffmode == 1}>Percent</option>
               </select>
               <input type="number" className="text-sm w-16 sm:w-20 text-center bg-sky-950 text-white border rounded-md" min="0" value={diffFrom} required onChange={(e) => setDiffFrom(e.target.value)}></input>
               <h1 className="px-3 sm:px-0">~</h1>
@@ -362,8 +362,8 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
             <div className="flex space-x-1 sm:space-x-3 sm:px-4 mb-2">
               <h1 className="w-16 sm:w-20 text-end">{betmode == 0 ? 'Stake($) :':'Stake :'}</h1>
               <select className="cursor-pointer block w-22 p-1 overflow-auto text-sm text-center bg-sky-950 text-white border rounded-md" onChange={(e) => setBetMode(e.target.value)}>
-                <option className="cursor-pointer" value={0} selected = {betmode == 0}>Fiexd</option>
-                <option className="cursor-pointer" value={1} selected = {betmode == 1}>Percent</option>
+                <option className="cursor-pointer" defaultValue={0} selected = {betmode == 0}>Fiexd</option>
+                <option className="cursor-pointer" defaultValue={1} selected = {betmode == 1}>Percent</option>
               </select>
               <div className="flex">
                 <input type="number" className="text-sm w-16 sm:w-20 text-center bg-sky-950 text-white border rounded-md" min="0" value={stake} required onChange={(e) => setStake(e.target.value)}></input>
@@ -385,7 +385,7 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
               <h1 className="sm:pl-2 w-20 sm:w-24 text-end">{'Formula :'}</h1>
               <select className="cursor-pointer block p-1 w-full overflow-auto text-sm text-center bg-sky-950 text-white border rounded-md" onChange={(e) => setEquation(e.target.value)}>
               {formulas.map((el, index) => (
-                <option className="cursor-pointer" value={el.formula} selected = {el.formula == equation} key = {index} >{el.formula}</option>
+                <option className="cursor-pointer" defaultValue={el.formula} selected = {el.formula == equation} key = {index} >{el.formula}</option>
               ))}
               </select>
             </div>
