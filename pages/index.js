@@ -136,6 +136,7 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
     websocket.onmessage = (event) => {
       var parseMsg = JSON.parse(event.data);
       if (parseMsg.type == 'BetInformation') {
+        console.log('=============================================> receive BetInformation!!!', event.data);
         var ret = parseMsg.data;
         var tmpbtdata = [];
         var tmppsdata = [];
@@ -490,6 +491,7 @@ React.useEffect(() => {
     socket.onmessage = (event) => {
       var parseMsg = JSON.parse(event.data);
       if (parseMsg.type == 'SportLeagueName') {
+        console.log('=============================================> receive SportLeagueName!!!', event.data);
         setMatchData(parseMsg.data);
       }
 
@@ -503,6 +505,7 @@ React.useEffect(() => {
     };
   
     return () => {
+      console.log('socket disconnect========================>')
       socket.close();
     };
   }
