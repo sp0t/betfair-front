@@ -136,7 +136,7 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
     websocket.onmessage = (event) => {
       var parseMsg = JSON.parse(event.data);
       if (parseMsg.type == 'BetInformation') {
-        console.log('=============================================> receive BetInformation!!!', event.data);
+        console.log('=============================================> receive BetInformation!!!');
         var ret = parseMsg.data;
         var tmpbtdata = [];
         var tmppsdata = [];
@@ -168,46 +168,98 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
             data.ps3838 = tmppsdata[y].moneyline;
     
             if (x == 0) {
-              data.betfair.away = tmpbtdata[0].moneyline.away.availableToBack[0].price;
-              data.betfair.home = tmpbtdata[0].moneyline.home.availableToBack[0].price;
+              if (tmpbtdata[0] == undefined) {
+                data.betfair.away = '-';
+                data.betfair.home = '-';
+              } else {
+                data.betfair.away = tmpbtdata[0].moneyline.away.availableToBack[0].price;
+                data.betfair.home = tmpbtdata[0].moneyline.home.availableToBack[0].price;
+              }
             } else {
-              data.betfair.away = tmpbtdata[x-1].moneyline.away.availableToBack[0].price;
-              data.betfair.home = tmpbtdata[x-1].moneyline.home.availableToBack[0].price;
+              if (tmpbtdata[x-1] == undefined) {
+                data.betfair.away = '-';
+                data.betfair.home = '-';
+              } else {
+                data.betfair.away = tmpbtdata[x-1].moneyline.away.availableToBack[0].price;
+                data.betfair.home = tmpbtdata[x-1].moneyline.home.availableToBack[0].price;
+              }
             }
     
             y++;
             
           }else if (date1 < date2) {
             data.gamedate = tmpbtdata[x].update;
-            data.betfair.away = tmpbtdata[x].moneyline.away.availableToBack[0].price;
-            data.betfair.home = tmpbtdata[x].moneyline.home.availableToBack[0].price;
-    
-            if (y == 0) {
-              data.ps3838 = tmppsdata[0].moneyline;
+
+            if (tmpbtdata[x] == undefined) {
+              data.betfair.away = '-';
+              data.betfair.home = '-';
             } else {
-              data.ps3838 = tmppsdata[y-1].moneyline;
+              data.betfair.away = tmpbtdata[x].moneyline.away.availableToBack[0].price;
+              data.betfair.home = tmpbtdata[x].moneyline.home.availableToBack[0].price;
             }
     
+            if (y == 0) {
+              if (tmppsdata[0] == undefined) {
+                data.ps3838.away = '-';
+                data.ps3838.home = '-';
+              } else data.ps3838 = tmppsdata[0].moneyline;
+            } else {
+              if (tmppsdata[y-1] == undefined) {
+                data.ps3838.away = '-';
+                data.ps3838.home = '-';
+              } else data.ps3838 = tmppsdata[y-1].moneyline;
+            }
+  
             x++;
           } else {
     
             if (tmpbtdata[x] == undefined) {
               data.gamedate = tmppsdata[y].update;
-              data.betfair.away = tmpbtdata[x-1].moneyline.away.availableToBack[0].price;
-              data.betfair.home = tmpbtdata[x-1].moneyline.home.availableToBack[0].price;
-              data.ps3838 = tmppsdata[y].moneyline;
+              if (tmpbtdata[x-1] == undefined) {
+                data.betfair.away = '-';
+                data.betfair.home = '-';
+              } else {
+                data.betfair.away = tmpbtdata[x-1].moneyline.away.availableToBack[0].price;
+                data.betfair.home = tmpbtdata[x-1].moneyline.home.availableToBack[0].price;
+              }
+
+              if (tmppsdata[y] == undefined) {
+                data.ps3838.away = '-';
+                data.ps3838.home = '-';
+              } else data.ps3838 = tmppsdata[y].moneyline;
+
               y++;
             } else if (tmppsdata[y] == undefined) {
               data.gamedate = tmpbtdata[x].update;
-              data.betfair.away = tmpbtdata[x].moneyline.away.availableToBack[0].price;
-              data.betfair.home = tmpbtdata[x].moneyline.home.availableToBack[0].price;
-              data.ps3838 = tmppsdata[y-1].moneyline;
+
+              if (tmpbtdata[x] == undefined) {
+                data.betfair.away = '-';
+                data.betfair.home = '-';
+              } else {
+                data.betfair.away = tmpbtdata[x].moneyline.away.availableToBack[0].price;
+                data.betfair.home = tmpbtdata[x].moneyline.home.availableToBack[0].price;
+              }
+
+              if (tmppsdata[y-1] == undefined) {
+                data.ps3838.away = '-';
+                data.ps3838.home = '-';
+              } else data.ps3838 = tmppsdata[y-1].moneyline;
               x++;
             } else {
               data.gamedate = tmpbtdata[x].update;
-              data.betfair.away = tmpbtdata[x].moneyline.away.availableToBack[0].price;
-              data.betfair.home = tmpbtdata[x].moneyline.home.availableToBack[0].price;
-              data.ps3838 = tmppsdata[y].moneyline;
+
+              if (tmpbtdata[x] == undefined) {
+                data.betfair.away = '-';
+                data.betfair.home = '-';
+              } else {
+                data.betfair.away = tmpbtdata[x].moneyline.away.availableToBack[0].price;
+                data.betfair.home = tmpbtdata[x].moneyline.home.availableToBack[0].price;
+              }
+
+              if (tmppsdata[y] == undefined) {
+                data.ps3838.away = '-';
+                data.ps3838.home = '-';
+              } else data.ps3838 = tmppsdata[y].moneyline;
               x++;
               y++;
             }
@@ -491,7 +543,7 @@ React.useEffect(() => {
     socket.onmessage = (event) => {
       var parseMsg = JSON.parse(event.data);
       if (parseMsg.type == 'SportLeagueName') {
-        console.log('=============================================> receive SportLeagueName!!!', event.data);
+        console.log('=============================================> receive SportLeagueName!!!');
         setMatchData(parseMsg.data);
       }
 
