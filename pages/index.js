@@ -47,6 +47,11 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
     }
 
     var socket = getSocket();
+    if (socket == null) {
+      initSocket();
+      socket = getSocket();
+      setWebsocket(socket); 
+    }
     setWebsocket(socket);  
     run();
   }, []);
@@ -532,6 +537,13 @@ React.useEffect(() => {
   const run = async() => {
     await initSocket();
     var socket = getSocket();
+
+    if (socket == null) {
+      initSocket();
+      socket = getSocket();
+      setWebsocket(socket); 
+    }
+    
     setWebsocket(socket);
     // const socket = new WebSocket(process.env.NEXT_PUBLIC_WEBSOCKETURL);
     
@@ -540,7 +552,7 @@ React.useEffect(() => {
     //   console.log('WebSocket connected');
     // };
   
-    socket.onmessage = (event) => {
+    websocket.onmessage = (event) => {
       var parseMsg = JSON.parse(event.data);
       if (parseMsg.type == 'SportLeagueName') {
         console.log('=============================================> receive SportLeagueName!!!');
@@ -552,13 +564,13 @@ React.useEffect(() => {
       }
     };
   
-    socket.onclose = () => {
+    websocket.onclose = () => {
       console.log('WebSocket disconnected');
     };
   
     return () => {
       console.log('socket disconnect========================>')
-      socket.close();
+      websocket.close();
     };
   }
 
