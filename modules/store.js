@@ -4,6 +4,6 @@ import SocketSlice from './SocketSlice'
 
 export default configureStore({
     reducer: {
-      WebSocket: SocketSlice
+        Socket: SocketSlice
     }
   })

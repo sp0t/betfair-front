@@ -15,11 +15,13 @@ import PauseCircleOutlineOutlinedIcon from '@mui/icons-material/PauseCircleOutli
 import PlayCircleFilledWhiteOutlinedIcon from '@mui/icons-material/PlayCircleFilledWhiteOutlined';
 import Button from '@mui/material/Button';
 import { useDispatch, useSelector } from 'react-redux';
-import { webSocket, setWebSocket } from '../modules/SocketSlice';
+import { Connected, Alarmstate, Wmatch, Wodd, Wbet, Message, setAlarmstate } from '../modules/SocketSlice';
+import { getSocket } from '../modules/websocketManager';
 
 const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stakemode = {}, _betid = '0', _btodd = {away: 0, home: 0}, _psodd = {away: 0, home: 0}, count = 0}) => {
 
-  const socket = useSelector(webSocket);
+  const betdata = useSelector(Wbet);
+  const odddata = useSelector(Wodd);
   const [stakemode, setStakeMode] = useState(_stakemode);
   const [modifystakemode, setModifyStakeMode] = React.useState(false);
   const [oddlog, setOddlog] = React.useState(false);
@@ -32,8 +34,6 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
   const [betmode, setMdBetMode] = useState(_stakemode.betmode);
   const [probability, setProbability] = useState(_stakemode.probability);
   const [runstate, setRunState] = useState(_stakemode.state);
-  const [betdata, setBetdata] = useState([]);
-  const [odddata, setOddData] = useState([]);
   const [formulas, setFormula] = useState([]);
   const [equation, setEquation] = useState('f = (p * (d - 1) -q) / (d - 1)');
 
@@ -119,6 +119,7 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
   
   const openDetailDlg = async() => {
     setOddlog(true);
+    var socket = getSocket();
 
     if (socket && socket.readyState === WebSocket.OPEN) {
       var ret = {
@@ -130,146 +131,6 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
       };
       socket.send(JSON.stringify(ret));
     }
-
-    socket.onmessage = (event) => {
-      var parseMsg = JSON.parse(event.data);
-      if (parseMsg.type == 'BetInformation') {
-        console.log('=============================================> receive BetInformation!!!');
-        var ret = parseMsg.data;
-        var tmpbtdata = [];
-        var tmppsdata = [];
-        if (ret.betfair != undefined)
-        {
-          tmpbtdata = ret.betfair.market;
-        }
-        if (ret.ps3838 != undefined) {
-          tmppsdata = ret.ps3838.market;
-        }
-        if (ret.data)
-          setBetdata(ret.betdata);
-        var oddtemp = [];
-        var x = 0;
-        var y = 0;
-    
-        
-    
-        while (x < tmpbtdata.length || y < tmppsdata.length) {
-          var data = {};
-          const date1 = new Date(tmpbtdata[x]).update;
-          const date2 = new Date(tmppsdata[y]).update;
-    
-          data.ps3838 = {};
-          data.betfair = {};
-    
-          if (date1 > date2) {
-            data.gamedate = tmppsdata[y].update;
-            data.ps3838 = tmppsdata[y].moneyline;
-    
-            if (x == 0) {
-              if (tmpbtdata[0] == undefined) {
-                data.betfair.away = '-';
-                data.betfair.home = '-';
-              } else {
-                data.betfair.away = tmpbtdata[0].moneyline.away.availableToBack[0].price;
-                data.betfair.home = tmpbtdata[0].moneyline.home.availableToBack[0].price;
-              }
-            } else {
-              if (tmpbtdata[x-1] == undefined) {
-                data.betfair.away = '-';
-                data.betfair.home = '-';
-              } else {
-                data.betfair.away = tmpbtdata[x-1].moneyline.away.availableToBack[0].price;
-                data.betfair.home = tmpbtdata[x-1].moneyline.home.availableToBack[0].price;
-              }
-            }
-    
-            y++;
-            
-          }else if (date1 < date2) {
-            data.gamedate = tmpbtdata[x].update;
-
-            if (tmpbtdata[x] == undefined) {
-              data.betfair.away = '-';
-              data.betfair.home = '-';
-            } else {
-              data.betfair.away = tmpbtdata[x].moneyline.away.availableToBack[0].price;
-              data.betfair.home = tmpbtdata[x].moneyline.home.availableToBack[0].price;
-            }
-    
-            if (y == 0) {
-              if (tmppsdata[0] == undefined) {
-                data.ps3838.away = '-';
-                data.ps3838.home = '-';
-              } else data.ps3838 = tmppsdata[0].moneyline;
-            } else {
-              if (tmppsdata[y-1] == undefined) {
-                data.ps3838.away = '-';
-                data.ps3838.home = '-';
-              } else data.ps3838 = tmppsdata[y-1].moneyline;
-            }
-  
-            x++;
-          } else {
-    
-            if (tmpbtdata[x] == undefined) {
-              data.gamedate = tmppsdata[y].update;
-              if (tmpbtdata[x-1] == undefined) {
-                data.betfair.away = '-';
-                data.betfair.home = '-';
-              } else {
-                data.betfair.away = tmpbtdata[x-1].moneyline.away.availableToBack[0].price;
-                data.betfair.home = tmpbtdata[x-1].moneyline.home.availableToBack[0].price;
-              }
-
-              if (tmppsdata[y] == undefined) {
-                data.ps3838.away = '-';
-                data.ps3838.home = '-';
-              } else data.ps3838 = tmppsdata[y].moneyline;
-
-              y++;
-            } else if (tmppsdata[y] == undefined) {
-              data.gamedate = tmpbtdata[x].update;
-
-              if (tmpbtdata[x] == undefined) {
-                data.betfair.away = '-';
-                data.betfair.home = '-';
-              } else {
-                data.betfair.away = tmpbtdata[x].moneyline.away.availableToBack[0].price;
-                data.betfair.home = tmpbtdata[x].moneyline.home.availableToBack[0].price;
-              }
-
-              if (tmppsdata[y-1] == undefined) {
-                data.ps3838.away = '-';
-                data.ps3838.home = '-';
-              } else data.ps3838 = tmppsdata[y-1].moneyline;
-              x++;
-            } else {
-              data.gamedate = tmpbtdata[x].update;
-
-              if (tmpbtdata[x] == undefined) {
-                data.betfair.away = '-';
-                data.betfair.home = '-';
-              } else {
-                data.betfair.away = tmpbtdata[x].moneyline.away.availableToBack[0].price;
-                data.betfair.home = tmpbtdata[x].moneyline.home.availableToBack[0].price;
-              }
-
-              if (tmppsdata[y] == undefined) {
-                data.ps3838.away = '-';
-                data.ps3838.home = '-';
-              } else data.ps3838 = tmppsdata[y].moneyline;
-              x++;
-              y++;
-            }
-          }
-    
-          oddtemp.push(data);
-        }
-    
-        setOddData(oddtemp);
-      }
-    };
-
   }
 
   const closeDetaildlg = () => {
@@ -280,7 +141,7 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
     <div className="border px-2 text-white rounded border-green-600 bg-sky-950 hover:bg-gray-900">
       <div className="lg:flex justify-between px-4">
         <div className="flex text-xl pt-8">
-          <h1>{_away}</h1> <h1 className=" px-4">vs</h1> <h1>{_home}</h1>
+          <span>{_away}</span> <span className=" px-4">vs</span> <span>{_home}</span>
         </div>
         <div className="mb-9 pt-6">
             <div className="pl-52 flex space-x-3">
@@ -306,31 +167,31 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
       <div className="flex pl-4 -mt-8 xl:-mt-14 space-x-4 py-4">
         <div className="flex text-center space-x-2">
           <div className="text-end">{stakemode.diffmode == 0 ? 'Fixed' : 'Percent'}{':'}</div>
-          <h1>{stakemode.diffmode == 0 ? `${stakemode.from}`: `${stakemode.from}%`}</h1>
-          <h1>~</h1>
-          <h1>{stakemode.diffmode == 0 ? `${stakemode.to} `: `${stakemode.to} %`}</h1>
+          <span>{stakemode.diffmode == 0 ? `${stakemode.from}`: `${stakemode.from}%`}</span>
+          <span>~</span>
+          <span>{stakemode.diffmode == 0 ? `${stakemode.to} `: `${stakemode.to} %`}</span>
         </div>
         <div className="flex text-center space-x-2">
           <div>Stake :</div>
-          <h1>{stakemode.betmode == 0 ? `$${stakemode.stake}`: `${stakemode.stake}%`}</h1>
+          <span>{stakemode.betmode == 0 ? `$${stakemode.stake}`: `${stakemode.stake}%`}</span>
         </div>
         <div className="flex text-center space-x-2">
           <div>Max :</div>
-          <h1>{`$${stakemode.max}`}</h1>
+          <span>{`$${stakemode.max}`}</span>
         </div>
         <div className="flex text-center space-x-2">
           <div>Probability :</div>
-          <h1>{`${stakemode.probability}%`}</h1>
+          <span>{`${stakemode.probability}%`}</span>
         </div>
       </div>
       <div className="flex pl-4 -mt-5 space-x-4 py-4">
         <div className="flex text-center space-x-2">
           <div className="">{'Formula:'}</div>
-          <h1>{stakemode.formula}</h1>
+          <span>{stakemode.formula}</span>
         </div>
         <div className="flex text-center space-x-2">
           <div>Kelly Balance :</div>
-          <h1>{`$${stakemode.kellybalance}`}</h1>
+          <span>{`$${stakemode.kellybalance}`}</span>
         </div>
         
         <div className="hover:cursor-pointer pl-4" onClick={() => setModifyStakeMode(true)}>
@@ -347,18 +208,18 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
           </div>
           <div className="text-white pt-5">
             <div className="flex space-x-1 sm:space-x-3 sm:px-4 mb-2">
-              <h1 className="w-16 sm:w-20 text-end">{'Diff :'}</h1>
+              <span className="w-16 sm:w-20 text-end">{'Diff :'}</span>
               <select className="cursor-pointer block w-22 p-1 overflow-auto text-sm text-center bg-sky-950 text-white border rounded-md" onChange={(e) => setDiffMode(e.target.value)}>
                 <option className="cursor-pointer" defaultValue={0} selected = {diffmode == 0}>Fiexd</option>
                 <option className="cursor-pointer" defaultValue={1} selected = {diffmode == 1}>Percent</option>
               </select>
               <input type="number" className="text-sm w-16 sm:w-20 text-center bg-sky-950 text-white border rounded-md" min="0" value={diffFrom} required onChange={(e) => setDiffFrom(e.target.value)}></input>
-              <h1 className="px-3 sm:px-0">~</h1>
+              <span className="px-3 sm:px-0">~</span>
               <input type="number" className="text-sm w-16 sm:w-20 text-center bg-sky-950 text-white border rounded-md" min="0" value={diffTo} required onChange={(e) => setDiffTo(e.target.value)}></input>
-              <h1 className="">{diffmode == 0 ? '':'(%)'}</h1>
+              <span className="">{diffmode == 0 ? '':'(%)'}</span>
             </div>
             <div className="flex space-x-1 sm:space-x-3 sm:px-4 mb-2">
-              <h1 className="w-16 sm:w-20 text-end">{betmode == 0 ? 'Stake($) :':'Stake :'}</h1>
+              <span className="w-16 sm:w-20 text-end">{betmode == 0 ? 'Stake($) :':'Stake :'}</span>
               <select className="cursor-pointer block w-22 p-1 overflow-auto text-sm text-center bg-sky-950 text-white border rounded-md" onChange={(e) => setBetMode(e.target.value)}>
                 <option className="cursor-pointer" defaultValue={0} selected = {betmode == 0}>Fiexd</option>
                 <option className="cursor-pointer" defaultValue={1} selected = {betmode == 1}>Percent</option>
@@ -366,21 +227,21 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
               <div className="flex">
                 <input type="number" className="text-sm w-16 sm:w-20 text-center bg-sky-950 text-white border rounded-md" min="0" value={stake} required onChange={(e) => setStake(e.target.value)}></input>
               </div>
-              <h1 className="">{betmode == 0 ? '':'(%)'}</h1>
+              <span className="">{betmode == 0 ? '':'(%)'}</span>
             </div>
             <div className="flex space-x-1 sm:space-x-3 sm:px-4 mb-2">
-              <h1 className="w-16 sm:w-20 text-end">{'Max($) :'}</h1>
+              <span className="w-16 sm:w-20 text-end">{'Max($) :'}</span>
               <div className="flex pr-4">
                 <input type="number" className="py-1 text-sm w-20 text-center bg-sky-950 text-white border rounded-md" min="0" value={max} required onChange={(e) => setMax(e.target.value)}></input>
               </div>
-              <h1 className="w-22">{'Probability :'}</h1>
+              <span className="w-22">{'Probability :'}</span>
               <div className="flex">
                 <input type="number" className="py-1 text-sm w-16 sm:w-20 text-center bg-sky-950 text-white border rounded-md" min="0" value={probability} required onChange={(e) => setProbability(e.target.value)}></input>
               </div>
-              <h1 className="">{'(%)'}</h1>
+              <span className="">{'(%)'}</span>
             </div>
             <div className="flex space-x-1 sm:space-x-3 sm:px-4 mb-2">
-              <h1 className="sm:pl-2 w-20 sm:w-24 text-end">{'Formula :'}</h1>
+              <span className="sm:pl-2 w-20 sm:w-24 text-end">{'Formula :'}</span>
               <select className="cursor-pointer block p-1 w-full overflow-auto text-sm text-center bg-sky-950 text-white border rounded-md" onChange={(e) => setEquation(e.target.value)}>
               {formulas.map((el, index) => (
                 <option className="cursor-pointer" defaultValue={el.formula} selected = {el.formula == equation} key = {index} >{el.formula}</option>
@@ -406,37 +267,37 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
           </div>
           <div className="text-white">
             <div className="p-2 font-bold text-lg flex justify-center">
-              <h1>{_away}</h1> <h1 className=" px-4">vs</h1> <h1>{_home}</h1>
+              <span>{_away}</span> <span className=" px-4">vs</span> <span>{_home}</span>
             </div>
             <div className="flex">
               <div>
                 <div className="flex">
-                  <h1 className="w-20 text-end pr-3">{`BetPlace :`}</h1>
-                  <h1>{betdata.length == 0 ? '-': betdata.place}</h1>
+                  <span className="w-20 text-end pr-3">{`BetPlace :`}</span>
+                  <span>{betdata.length == 0 ? '-': betdata.place}</span>
                 </div>
                 <div className="flex">
-                  <h1 className="w-20 text-end pr-3">{`BetTime :`}</h1>
-                  <h1 className="w-40">{betdata.length == 0 ? '-': convertToDate(betdata.betdate)}</h1>
+                  <span className="w-20 text-end pr-3">{`BetTime :`}</span>
+                  <span className="w-40">{betdata.length == 0 ? '-': convertToDate(betdata.betdate)}</span>
                 </div>
                 <div className="flex">
-                  <h1 className="w-20 text-end pr-3">{`Stake :`}</h1>
-                  <h1>{betdata.length == 0 ? '-': betdata.stake}</h1>
+                  <span className="w-20 text-end pr-3">{`Stake :`}</span>
+                  <span>{betdata.length == 0 ? '-': betdata.stake}</span>
                 </div>
                 <div className="flex">
-                  <h1 className="w-20 text-end pr-3">{`Odd :`}</h1>
-                  <h1>{betdata.length == 0 ? '-': betdata.odds}</h1>
+                  <span className="w-20 text-end pr-3">{`Odd :`}</span>
+                  <span>{betdata.length == 0 ? '-': betdata.odds}</span>
                 </div>
                 <div className="flex">
-                  <h1 className="w-20 text-end pr-3">{`Profit :`}</h1>
-                  <h1>{betdata.length == 0 ? '-': betdata.odds * betdata.stake}</h1>
+                  <span className="w-20 text-end pr-3">{`Profit :`}</span>
+                  <span>{betdata.length == 0 ? '-': betdata.odds * betdata.stake}</span>
                 </div>
                 <div className="flex">
-                  <h1 className="w-20 text-end pr-3">{`Market :`}</h1>
-                  <h1>{betdata.length == 0 ? '-': 'MoneyLine'}</h1>
+                  <span className="w-20 text-end pr-3">{`Market :`}</span>
+                  <span>{betdata.length == 0 ? '-': 'MoneyLine'}</span>
                 </div>
                 <div className="flex pt-1">
-                  <h1 className="w-20 text-end pr-3">{`State :`}</h1>
-                  <h1>{betdata.length == 0 ? '-': betdata.state == 0 ? 'InPlay' : betdata.state == 2 ? 'Win':'Lose'}</h1>
+                  <span className="w-20 text-end pr-3">{`State :`}</span>
+                  <span>{betdata.length == 0 ? '-': betdata.state == 0 ? 'InPlay' : betdata.state == 2 ? 'Win':'Lose'}</span>
                 </div>
               </div>
               <div>
@@ -470,38 +331,38 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
             <div>
               <div className="flex border-b-2">
                 <div className="w-48 text-center">
-                  <hl>Time</hl>
+                  <span>Time</span>
                 </div>
                 <div className="w-20 text-center">
-                  <hl>Away</hl>
+                  <span>Away</span>
                 </div>
                 <div className="w-20 text-center">
-                  <hl>Home</hl>
+                  <span>Home</span>
                 </div>
                 <div className="w-20 text-center">
-                  <hl>Away</hl>
+                  <span>Away</span>
                 </div>
                 <div className="w-20 text-center">
-                  <hl>Home</hl>
+                  <span>Home</span>
                 </div>
               </div>
               <div className="overflow-y-auto h-80">
                 {odddata.map((el, index) => (
                   <div className="flex pt-2" key = {index}>
                     <div className="w-48 text-center">
-                      <hl>{el.gamedate}</hl>
+                      <span>{el.gamedate}</span>
                     </div>
                     <div className="w-20 text-center">
-                      <hl>{el.betfair.away == undefined ? '-': el.betfair.away}</hl>
+                      <span>{el.betfair.away == undefined ? '-': el.betfair.away}</span>
                     </div>
                     <div className="w-20 text-center">
-                      <hl>{el.betfair.home == undefined ? '-': el.betfair.home}</hl>
+                      <span>{el.betfair.home == undefined ? '-': el.betfair.home}</span>
                     </div>
                     <div className="w-20 text-center">
-                      <hl>{el.ps3838.away == undefined ? '-': el.ps3838.away}</hl>
+                      <span>{el.ps3838.away == undefined ? '-': el.ps3838.away}</span>
                     </div>
                     <div className="w-20 text-center">
-                      <hl>{el.ps3838.home == undefined ? '-': el.ps3838.home}</hl>
+                      <span>{el.ps3838.home == undefined ? '-': el.ps3838.home}</span>
                     </div>
                   </div>
                 ))}
@@ -517,6 +378,10 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
 
 const Explorer = () => {
   
+// const dispatch = useDispatch();
+const matchData = useSelector(Wmatch);
+const alarmstate = useSelector(Alarmstate);
+const message = useSelector(Message);
 const dispatch = useDispatch();
 
 const [monitmenu, setMonitMenu] = useState([]);
@@ -524,15 +389,11 @@ const [sportmenu, setSportMenu] = useState([]);
 const [competitionmenu, setCompetitionMenu] = useState([]);
 const [selectsport, setSelectSport] = useState('ALL');
 const [selectcompetition, setSelectCompetition] = useState('ALL');
-const [matchData, setMatchData] = useState([]);
-
-const [websocket, setSocket] = useState(null);
 
 React.useEffect(() => {
   const run = async () => {
-    var [monitor, match] = await Promise.all([
-      axios.get(`${process.env.NEXT_PUBLIC_APIURL}getMonitor?sport=ALL`),
-      axios.get(`${process.env.NEXT_PUBLIC_APIURL}getMatchs?sportName=ALL&competitionName=ALL`)
+    var [monitor] = await Promise.all([
+      axios.get(`${process.env.NEXT_PUBLIC_APIURL}getMonitor?sport=ALL`)
     ])
 
     var tmpSport = [];
@@ -543,46 +404,27 @@ React.useEffect(() => {
 
     setMonitMenu(monitor.data);
     setSportMenu(tmpSport);
-    setMatchData(match.data);
-
-    const socket = new WebSocket(process.env.NEXT_PUBLIC_WEBSOCKETURL);
-    dispatch(setWebSocket(socket));
-    setSocket(socket);
-
-  
-    socket.onmessage = (event) => {
-      var parseMsg = JSON.parse(event.data);
-      if (parseMsg.type == 'SportLeagueName') {
-        console.log('=============================================> receive SportLeagueName!!!');
-        setMatchData(parseMsg.data);
-      }
-
-      if (parseMsg.type == 'betalarm') {
-        toast.success(parseMsg.data);
-      }
-    };
-  
-    socket.onclose = () => {
-      console.log('WebSocket disconnected');
-    };
-  
-    return () => {
-      console.log('socket disconnect========================>')
-      socket.close();
-    };
   };
 
   run();
 }, []);
 
+useEffect(()=>{
+  if (alarmstate) {
+    toast.success(message);
+    dispatch(setAlarmstate(false));
+  }
+}, [alarmstate, message]);
+
 useEffect(() => {
-  if (websocket && websocket.readyState === WebSocket.OPEN) {
+  var socket = getSocket();
+  if (socket && socket.readyState === WebSocket.OPEN) {
     var ret = {
       type: 'SportLeagueName',
       sportname: selectsport,
       competitionname: selectcompetition
     };
-    websocket.send(JSON.stringify(ret));
+    socket.send(JSON.stringify(ret));
   }
 }, [selectsport, selectcompetition])
 
@@ -646,7 +488,9 @@ const getSportString = (data) => {
               { (matchData.length > 0 && selectsport == 'ALL')?<div className="bg-gray-950 text-white p-2"> {'All Leagues'}</div> : <div></div>}
                 {sportmenu.length > 0 ? matchData.map((el, index) => (<>
                   {index ==0 || (index > 0 && el.competitionName!= matchData[index-1].competitionName) ?<div className="bg-gray-800 text-white p-2"> {el.competitionName}</div> : <div></div>}
+                  <div key = {index}>
                   <LeagueCard _monitid = {el.monitId} _eventid = {el.eventId} _away = {el.away} _home = {el.home} _stakemode = {el.stakemode} _betid = {el.betid} _btodd = {el.betfairodd} _psodd = {el.ps3838odd} count={index}></LeagueCard>
+                  </div>
                 </>
                 )): <div></div>}
               </div>     
