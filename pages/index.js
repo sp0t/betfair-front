@@ -543,7 +543,7 @@ React.useEffect(() => {
       socket = getSocket();
       setWebsocket(socket); 
     }
-    
+
     setWebsocket(socket);
     // const socket = new WebSocket(process.env.NEXT_PUBLIC_WEBSOCKETURL);
     
@@ -552,7 +552,7 @@ React.useEffect(() => {
     //   console.log('WebSocket connected');
     // };
   
-    websocket.onmessage = (event) => {
+    socket.onmessage = (event) => {
       var parseMsg = JSON.parse(event.data);
       if (parseMsg.type == 'SportLeagueName') {
         console.log('=============================================> receive SportLeagueName!!!');
@@ -564,13 +564,13 @@ React.useEffect(() => {
       }
     };
   
-    websocket.onclose = () => {
+    socket.onclose = () => {
       console.log('WebSocket disconnected');
     };
   
     return () => {
       console.log('socket disconnect========================>')
-      websocket.close();
+      socket.close();
     };
   }
 
