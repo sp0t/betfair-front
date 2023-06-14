@@ -1,6 +1,6 @@
-import { useState } from "react";
 import React from "react";
 import axios from 'axios'
+import { useState } from "react";
 import { useEffect } from "react";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -14,10 +14,12 @@ import ModeEditOutlineOutlinedIcon from '@mui/icons-material/ModeEditOutlineOutl
 import PauseCircleOutlineOutlinedIcon from '@mui/icons-material/PauseCircleOutlineOutlined';
 import PlayCircleFilledWhiteOutlinedIcon from '@mui/icons-material/PlayCircleFilledWhiteOutlined';
 import Button from '@mui/material/Button';
-import { initSocket, getSocket } from '../const/websocket';
+import { useDispatch, useSelector } from 'react-redux';
+import { webSocket, setWebSocket } from '../modules/SocketSlice';
 
 const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stakemode = {}, _betid = '0', _btodd = {away: 0, home: 0}, _psodd = {away: 0, home: 0}, count = 0}) => {
 
+  const socket = useSelector(webSocket);
   const [stakemode, setStakeMode] = useState(_stakemode);
   const [modifystakemode, setModifyStakeMode] = React.useState(false);
   const [oddlog, setOddlog] = React.useState(false);
@@ -117,12 +119,6 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
   
   const openDetailDlg = async() => {
     setOddlog(true);
-
-    var socket = getSocket();
-    if (socket == null) {
-      initSocket();
-      socket = getSocket();
-    }
 
     if (socket && socket.readyState === WebSocket.OPEN) {
       var ret = {
@@ -520,6 +516,8 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
 }
 
 const Explorer = () => {
+  
+const dispatch = useDispatch();
 
 const [monitmenu, setMonitMenu] = useState([]);
 const [sportmenu, setSportMenu] = useState([]);
@@ -528,26 +526,29 @@ const [selectsport, setSelectSport] = useState('ALL');
 const [selectcompetition, setSelectCompetition] = useState('ALL');
 const [matchData, setMatchData] = useState([]);
 
-const [websocket, setWebsocket] = useState(null);
+const [websocket, setSocket] = useState(null);
 
 React.useEffect(() => {
-  const run = async() => {
-    await initSocket();
-    var socket = getSocket();
+  const run = async () => {
+    var [monitor, match] = await Promise.all([
+      axios.get(`${process.env.NEXT_PUBLIC_APIURL}getMonitor?sport=ALL`),
+      axios.get(`${process.env.NEXT_PUBLIC_APIURL}getMatchs?sportName=ALL&competitionName=ALL`)
+    ])
 
-    if (socket == null) {
-      initSocket();
-      socket = getSocket();
-      setWebsocket(socket); 
+    var tmpSport = [];
+    for (var x in monitor.data) {
+      if (!tmpSport.includes(getSportString(monitor.data[x].sport)))
+        tmpSport.push(getSportString(monitor.data[x].sport));
     }
 
-    setWebsocket(socket);
-    // const socket = new WebSocket(process.env.NEXT_PUBLIC_WEBSOCKETURL);
-    
-  
-    // socket.onopen = () => {
-    //   console.log('WebSocket connected');
-    // };
+    setMonitMenu(monitor.data);
+    setSportMenu(tmpSport);
+    setMatchData(match.data);
+
+    const socket = new WebSocket(process.env.NEXT_PUBLIC_WEBSOCKETURL);
+    dispatch(setWebSocket(socket));
+    setSocket(socket);
+
   
     socket.onmessage = (event) => {
       var parseMsg = JSON.parse(event.data);
@@ -569,28 +570,7 @@ React.useEffect(() => {
       console.log('socket disconnect========================>')
       socket.close();
     };
-  }
-
-  run();
-}, []);
-
-
-React.useEffect(() => {
-  const run = async () => {
-    var [monitor] = await Promise.all([
-      await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getMonitor?sport=ALL`),
-    ])
-
-    var tmpSport = [];
-    for (var x in monitor.data) {
-      if (!tmpSport.includes(getSportString(monitor.data[x].sport)))
-        tmpSport.push(getSportString(monitor.data[x].sport));
-    }
-
-    setMonitMenu(monitor.data);
-    setSportMenu(tmpSport);
   };
-
 
   run();
 }, []);
