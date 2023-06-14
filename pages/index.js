@@ -46,13 +46,13 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
       setFormula(ret.data);
     }
 
-    var socket = getSocket();
-    if (socket == null) {
-      initSocket();
-      socket = getSocket();
-      setWebsocket(socket); 
-    }
-    setWebsocket(socket);  
+    // var socket = getSocket();
+    // if (socket == null) {
+    //   initSocket();
+    //   socket = getSocket();
+    //   setWebsocket(socket); 
+    // }
+    // setWebsocket(socket);  
     run();
   }, []);
 
