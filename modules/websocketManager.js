@@ -38,7 +38,7 @@ export const initSocket = (reduxStore) => {
         if (ret.ps3838 != undefined) {
           tmppsdata = ret.ps3838.market;
         }
-        if (ret.data)
+        if (ret.betdata)
             store.dispatch(setWbet(ret.betdata));
         var oddtemp = [];
         var x = 0;

@@ -15,7 +15,7 @@ import PauseCircleOutlineOutlinedIcon from '@mui/icons-material/PauseCircleOutli
 import PlayCircleFilledWhiteOutlinedIcon from '@mui/icons-material/PlayCircleFilledWhiteOutlined';
 import Button from '@mui/material/Button';
 import { useDispatch, useSelector } from 'react-redux';
-import { Connected, Alarmstate, Wmatch, Wodd, Wbet, Wstakemode, Message, setAlarmstate } from '../modules/SocketSlice';
+import { Connected, Wmatch, Wodd, Wbet, Wstakemode } from '../modules/SocketSlice';
 import { getSocket } from '../modules/websocketManager';
 
 const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stakemode = {}, _betid = '0', _btodd = {away: 0, home: 0}, _psodd = {away: 0, home: 0}, count = 0}) => {
@@ -273,12 +273,16 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
             <div className="flex">
               <div>
                 <div className="flex">
-                  <span className="w-20 text-end pr-3">{`BetPlace :`}</span>
-                  <span>{betdata.length == 0 ? '-': betdata.place}</span>
+                  <span className="w-20 text-end pr-3">{`Play :`}</span>
+                  <span className="w-40">{betdata.length == 0 ? '-': betdata.gamedate}</span>
                 </div>
                 <div className="flex">
                   <span className="w-20 text-end pr-3">{`BetTime :`}</span>
-                  <span className="w-40">{betdata.length == 0 ? '-': convertToDate(betdata.betdate)}</span>
+                  <span className="w-40">{betdata.length == 0 ? '-': betdata.betdate}</span>
+                </div>
+                <div className="flex">
+                  <span className="w-20 text-end pr-3">{`BetPlace :`}</span>
+                  <span>{betdata.length == 0 ? '-': betdata.place}</span>
                 </div>
                 <div className="flex">
                   <span className="w-20 text-end pr-3">{`Stake :`}</span>
@@ -298,7 +302,7 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
                 </div>
                 <div className="flex pt-1">
                   <span className="w-20 text-end pr-3">{`State :`}</span>
-                  <span>{betdata.length == 0 ? '-': betdata.state == 0 ? 'InPlay' : betdata.state == 2 ? 'Win':'Lose'}</span>
+                  <span>{betdata.length == 0 ? '-': betdata.state == 0 ? 'Pending' : betdata.state == 2 ? 'Win':'Lose'}</span>
                 </div>
               </div>
               <div>
@@ -349,7 +353,7 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
               </div>
               <div className="overflow-y-auto h-80">
                 {odddata.map((el, index) => (
-                  <div className="flex pt-2" key = {index}>
+                   el.gamedate != 'NONE' && <><div className="flex pt-2" key = {index}>
                     <div className="w-48 text-center">
                       <span>{el.gamedate}</span>
                     </div>
@@ -365,7 +369,7 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
                     <div className="w-20 text-center">
                       <span>{el.ps3838.home == undefined ? '-': el.ps3838.home}</span>
                     </div>
-                  </div>
+                  </div></>
                 ))}
               </div>
             </div>
@@ -381,8 +385,6 @@ const Explorer = () => {
   
 // const dispatch = useDispatch();
 const matchData = useSelector(Wmatch);
-const alarmstate = useSelector(Alarmstate);
-const message = useSelector(Message);
 const dispatch = useDispatch();
 
 const [monitmenu, setMonitMenu] = useState([]);
@@ -406,16 +408,17 @@ React.useEffect(() => {
     setMonitMenu(monitor.data);
     setSportMenu(tmpSport);
   };
-
   run();
-}, []);
 
-useEffect(()=>{
-  if (alarmstate) {
-    toast.success(message);
-    dispatch(setAlarmstate(false));
+  var socket = getSocket();
+
+  socket.onmessage = (event) => {
+    var parseMsg = JSON.parse(event.data);
+    if (parseMsg.type == 'betalarm') {
+      toast.success(parseMsg.data);
+    }
   }
-}, [alarmstate, message]);
+}, []);
 
 useEffect(() => {
   var socket = getSocket();
