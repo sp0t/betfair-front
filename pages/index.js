@@ -15,13 +15,14 @@ import PauseCircleOutlineOutlinedIcon from '@mui/icons-material/PauseCircleOutli
 import PlayCircleFilledWhiteOutlinedIcon from '@mui/icons-material/PlayCircleFilledWhiteOutlined';
 import Button from '@mui/material/Button';
 import { useDispatch, useSelector } from 'react-redux';
-import { Connected, Alarmstate, Wmatch, Wodd, Wbet, Message, setAlarmstate } from '../modules/SocketSlice';
+import { Connected, Alarmstate, Wmatch, Wodd, Wbet, Wstakemode, Message, setAlarmstate } from '../modules/SocketSlice';
 import { getSocket } from '../modules/websocketManager';
 
 const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stakemode = {}, _betid = '0', _btodd = {away: 0, home: 0}, _psodd = {away: 0, home: 0}, count = 0}) => {
 
   const betdata = useSelector(Wbet);
   const odddata = useSelector(Wodd);
+  const gstakemode = useSelector(Wstakemode);
   const [stakemode, setStakeMode] = useState(_stakemode);
   const [modifystakemode, setModifyStakeMode] = React.useState(false);
   const [oddlog, setOddlog] = React.useState(false);
@@ -93,7 +94,7 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
 
   const okModify = React.useCallback(async() => {
     var tmp = JSON.parse(JSON.stringify(stakemode));
-    
+
     tmp.diffmode = diffmode;
     tmp.betmode = betmode;
     tmp.from = diffFrom;
@@ -139,12 +140,12 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
 
   return (
     <div className="border px-2 text-white rounded border-green-600 bg-sky-950 hover:bg-gray-900">
-      <div className="lg:flex justify-between px-4">
+      <div className="lg:flex justify-between px-4 2xl:px-10">
         <div className="flex text-xl pt-8">
           <span>{_away}</span> <span className=" px-4">vs</span> <span>{_home}</span>
         </div>
         <div className="mb-9 pt-6">
-            <div className="pl-52 flex space-x-3">
+            <div className="flex justify-center items-center space-x-4 pl-52">
               <div className="pt-0.5">Betfair</div>
               <div className="pt-0.5">PS3838</div>
               <div className="hover:cursor-pointer" onClick={() => openDetailDlg()}>
@@ -164,27 +165,27 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
             </div>
         </div>
       </div>
-      <div className="flex pl-4 -mt-8 xl:-mt-14 space-x-4 py-4">
+      <div className="flex pl-4 -mt-8 xl:-mt-14 space-x-4 py-4 px-4 2xl:px-10">
         <div className="flex text-center space-x-2">
-          <div className="text-end">{stakemode.diffmode == 0 ? 'Fixed' : 'Percent'}{':'}</div>
-          <span>{stakemode.diffmode == 0 ? `${stakemode.from}`: `${stakemode.from}%`}</span>
+          <div className="text-end">{stakemode.state ? (stakemode.diffmode == 0 ? 'Fixed' : 'Percent'):(gstakemode.diffmode == 0 ? 'Fixed' : 'Percent')}{':'}</div>
+          <span>{stakemode.state ? (stakemode.diffmode == 0 ? `${stakemode.from}`: `${stakemode.from}%`):(gstakemode.diffmode == 0 ? `${gstakemode.from}`: `${gstakemode.from}%`)}</span>
           <span>~</span>
-          <span>{stakemode.diffmode == 0 ? `${stakemode.to} `: `${stakemode.to} %`}</span>
+          <span>{stakemode.state ? (stakemode.diffmode == 0 ? `${stakemode.to} `: `${stakemode.to} %`):(gstakemode.diffmode == 0 ? `${gstakemode.to} `: `${gstakemode.to} %`)}</span>
         </div>
         <div className="flex text-center space-x-2">
           <div>Stake :</div>
-          <span>{stakemode.betmode == 0 ? `$${stakemode.stake}`: `${stakemode.stake}%`}</span>
+          <span>{stakemode.state ? (stakemode.betmode == 0 ? `$${stakemode.stake}`: `${stakemode.stake}%`):(gstakemode.betmode == 0 ? `$${gstakemode.stake}`: `${gstakemode.stake}%`)}</span>
         </div>
         <div className="flex text-center space-x-2">
           <div>Max :</div>
-          <span>{`$${stakemode.max}`}</span>
+          <span>{`$${stakemode.state ? stakemode.max : gstakemode.max}`}</span>
         </div>
         <div className="flex text-center space-x-2">
           <div>Probability :</div>
           <span>{`${stakemode.probability}%`}</span>
         </div>
       </div>
-      <div className="flex pl-4 -mt-5 space-x-4 py-4">
+      <div className="flex pl-4 -mt-5 space-x-4 py-4 px-4 2xl:px-10">
         <div className="flex text-center space-x-2">
           <div className="">{'Formula:'}</div>
           <span>{stakemode.formula}</span>
@@ -210,8 +211,8 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
             <div className="flex space-x-1 sm:space-x-3 sm:px-4 mb-2">
               <span className="w-16 sm:w-20 text-end">{'Diff :'}</span>
               <select className="cursor-pointer block w-22 p-1 overflow-auto text-sm text-center bg-sky-950 text-white border rounded-md" onChange={(e) => setDiffMode(e.target.value)}>
-                <option className="cursor-pointer" defaultValue={0} selected = {diffmode == 0}>Fiexd</option>
-                <option className="cursor-pointer" defaultValue={1} selected = {diffmode == 1}>Percent</option>
+                <option className="cursor-pointer" value={0} selected = {diffmode == 0}>Fiexd</option>
+                <option className="cursor-pointer" value={1} selected = {diffmode == 1}>Percent</option>
               </select>
               <input type="number" className="text-sm w-16 sm:w-20 text-center bg-sky-950 text-white border rounded-md" min="0" value={diffFrom} required onChange={(e) => setDiffFrom(e.target.value)}></input>
               <span className="px-3 sm:px-0">~</span>
@@ -221,8 +222,8 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
             <div className="flex space-x-1 sm:space-x-3 sm:px-4 mb-2">
               <span className="w-16 sm:w-20 text-end">{betmode == 0 ? 'Stake($) :':'Stake :'}</span>
               <select className="cursor-pointer block w-22 p-1 overflow-auto text-sm text-center bg-sky-950 text-white border rounded-md" onChange={(e) => setBetMode(e.target.value)}>
-                <option className="cursor-pointer" defaultValue={0} selected = {betmode == 0}>Fiexd</option>
-                <option className="cursor-pointer" defaultValue={1} selected = {betmode == 1}>Percent</option>
+                <option className="cursor-pointer" value={0} selected = {betmode == 0}>Fiexd</option>
+                <option className="cursor-pointer" value={1} selected = {betmode == 1}>Percent</option>
               </select>
               <div className="flex">
                 <input type="number" className="text-sm w-16 sm:w-20 text-center bg-sky-950 text-white border rounded-md" min="0" value={stake} required onChange={(e) => setStake(e.target.value)}></input>
@@ -244,7 +245,7 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
               <span className="sm:pl-2 w-20 sm:w-24 text-end">{'Formula :'}</span>
               <select className="cursor-pointer block p-1 w-full overflow-auto text-sm text-center bg-sky-950 text-white border rounded-md" onChange={(e) => setEquation(e.target.value)}>
               {formulas.map((el, index) => (
-                <option className="cursor-pointer" defaultValue={el.formula} selected = {el.formula == equation} key = {index} >{el.formula}</option>
+                <option className="cursor-pointer" value={el.formula} selected = {el.formula == equation} key = {index} >{el.formula}</option>
               ))}
               </select>
             </div>
@@ -469,9 +470,9 @@ const getSportString = (data) => {
         <Header />
         {matchData.length != 0?<div className="text-end w-full">{matchData[0].update}</div>:<div  className="text-end w-full">NONE</div>}
         <div className="bg-gradient-to-r from-green-600 to-[#233d26] min-h-screen">
-          <div className="pt-10 sm:pt-20 m-auto justify-center mr-1 lg:flex">
-            <div className="border-solid border-rose-600 p-2 bg-orange-600 rounded-lg justify-center sm:flex">
-              <div className="h-[550px] sm:w-[250px] bg-white overflow-y-auto rounded-lg">
+          <div className="m-auto justify-center lg:flex">
+            <div className="w-screen h-auto sm:h-screen border-solid border-rose-600 bg-orange-600 p-1 justify-center sm:flex">
+              <div className="w-full sm:w-[350px] 2xl:w-[400px] bg-white overflow-y-auto">
                 {sportmenu.map((el, index) => (<>
                     <div className="text-white items-center bg-gray-900 rounded-sm text-base hover:bg-gray-800  hover:cursor-pointer" key = {index} onClick={() => setSelectSportName(el)}>
                       <div className="flex p-2 justify-start">
@@ -484,7 +485,7 @@ const getSportString = (data) => {
                   </>
                   ))}
               </div>            
-              <div className="sm:ml-2 h-[550px] sm:w-[700px] xl:w-[900px] overflow-y-auto mt-2 sm:mt-0 bg-blue-50 rounded-lg">
+              <div className=" w-full h-screen sm:ml-2 overflow-y-auto mt-2 sm:mt-0 bg-blue-50">
               { (matchData.length > 0 && selectsport == 'ALL')?<div className="bg-gray-950 text-white p-2"> {'All Leagues'}</div> : <div></div>}
                 {sportmenu.length > 0 ? matchData.map((el, index) => (<>
                   {index ==0 || (index > 0 && el.competitionName!= matchData[index-1].competitionName) ?<div className="bg-gray-800 text-white p-2"> {el.competitionName}</div> : <div></div>}

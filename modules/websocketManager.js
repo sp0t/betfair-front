@@ -1,6 +1,6 @@
 // websocketManager.js
 
-import { setConnect, setAlarmstate, setWmatch,  setWodd, setWbet, setMessage } from './SocketSlice';
+import { setConnect, setAlarmstate, setWmatch,  setWodd, setWbet, setWstakemode, setMessage } from './SocketSlice';
 
 let store = null;
 let socket = null;
@@ -16,8 +16,9 @@ export const initSocket = (reduxStore) => {
   socket.onmessage = (event) => {
     var parseMsg = JSON.parse(event.data);
       if (parseMsg.type == 'SportLeagueName') {
-        console.log('=============================================> receive SportLeagueName!!!');
+        console.log('=============================================> receive SportLeagueName!!!', parseMsg.stakemode);
         store.dispatch(setWmatch(parseMsg.data));
+        store.dispatch(setWstakemode(parseMsg.stakemode));
       }
 
       if (parseMsg.type == 'betalarm') {
