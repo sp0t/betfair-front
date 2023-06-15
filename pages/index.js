@@ -15,13 +15,10 @@ import PauseCircleOutlineOutlinedIcon from '@mui/icons-material/PauseCircleOutli
 import PlayCircleFilledWhiteOutlinedIcon from '@mui/icons-material/PlayCircleFilledWhiteOutlined';
 import Button from '@mui/material/Button';
 import { useDispatch, useSelector } from 'react-redux';
-import { Connected, Wmatch, Wodd, Wbet, Wstakemode } from '../modules/SocketSlice';
+import { Connected, Wmatch, Wodd, Wstakemode } from '../modules/SocketSlice';
 import { getSocket } from '../modules/websocketManager';
 
 const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stakemode = {}, _betid = '0', _btodd = {away: 0, home: 0}, _psodd = {away: 0, home: 0}, count = 0}) => {
-
-  const betdata = useSelector(Wbet);
-  const odddata = useSelector(Wodd);
   const gstakemode = useSelector(Wstakemode);
   const [stakemode, setStakeMode] = useState(_stakemode);
   const [modifystakemode, setModifyStakeMode] = React.useState(false);
@@ -37,6 +34,8 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
   const [runstate, setRunState] = useState(_stakemode.state);
   const [formulas, setFormula] = useState([]);
   const [equation, setEquation] = useState('f = (p * (d - 1) -q) / (d - 1)');
+  const [betdata, setBetData] = useState([]);
+  const [odddata, setOddData] = useState([]);
 
   useEffect(()=>{
     setStakeMode(_stakemode)
@@ -121,7 +120,7 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
   const openDetailDlg = async() => {
     setOddlog(true);
     var socket = getSocket();
-
+    
     if (socket && socket.readyState === WebSocket.OPEN) {
       var ret = {
         type: 'BetInformation',
@@ -132,6 +131,145 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
       };
       socket.send(JSON.stringify(ret));
     }
+
+    socket.onmessage = (event) => {
+      var parseMsg = JSON.parse(event.data);
+      if (parseMsg.type == 'betalarm') {
+        var ret = parseMsg.data;
+        var tmpbtdata = [];
+        var tmppsdata = [];
+        if (ret.betfair != undefined)
+        {
+          tmpbtdata = ret.betfair.market;
+        }
+        if (ret.ps3838 != undefined) {
+          tmppsdata = ret.ps3838.market;
+        }
+        if (ret.betdata)
+            setBetData(ret.betdata);
+        var oddtemp = [];
+        var x = 0;
+        var y = 0;
+    
+        
+    
+        while (x < tmpbtdata.length || y < tmppsdata.length) {
+          var data = {};
+          const date1 = new Date(tmpbtdata[x]).update;
+          const date2 = new Date(tmppsdata[y]).update;
+    
+          data.ps3838 = {};
+          data.betfair = {};
+    
+          if (date1 > date2) {
+            data.gamedate = tmppsdata[y].update;
+            data.ps3838 = tmppsdata[y].moneyline;
+    
+            if (x == 0) {
+              if (tmpbtdata[0] == undefined) {
+                data.betfair.away = '-';
+                data.betfair.home = '-';
+              } else {
+                data.betfair.away = tmpbtdata[0].moneyline.away.availableToBack[0].price;
+                data.betfair.home = tmpbtdata[0].moneyline.home.availableToBack[0].price;
+              }
+            } else {
+              if (tmpbtdata[x-1] == undefined) {
+                data.betfair.away = '-';
+                data.betfair.home = '-';
+              } else {
+                data.betfair.away = tmpbtdata[x-1].moneyline.away.availableToBack[0].price;
+                data.betfair.home = tmpbtdata[x-1].moneyline.home.availableToBack[0].price;
+              }
+            }
+    
+            y++;
+            
+          }else if (date1 < date2) {
+            data.gamedate = tmpbtdata[x].update;
+
+            if (tmpbtdata[x] == undefined) {
+              data.betfair.away = '-';
+              data.betfair.home = '-';
+            } else {
+              data.betfair.away = tmpbtdata[x].moneyline.away.availableToBack[0].price;
+              data.betfair.home = tmpbtdata[x].moneyline.home.availableToBack[0].price;
+            }
+    
+            if (y == 0) {
+              if (tmppsdata[0] == undefined) {
+                data.ps3838.away = '-';
+                data.ps3838.home = '-';
+              } else data.ps3838 = tmppsdata[0].moneyline;
+            } else {
+              if (tmppsdata[y-1] == undefined) {
+                data.ps3838.away = '-';
+                data.ps3838.home = '-';
+              } else data.ps3838 = tmppsdata[y-1].moneyline;
+            }
+  
+            x++;
+          } else {
+    
+            if (tmpbtdata[x] == undefined) {
+              data.gamedate = tmppsdata[y].update;
+              if (tmpbtdata[x-1] == undefined) {
+                data.betfair.away = '-';
+                data.betfair.home = '-';
+              } else {
+                data.betfair.away = tmpbtdata[x-1].moneyline.away.availableToBack[0].price;
+                data.betfair.home = tmpbtdata[x-1].moneyline.home.availableToBack[0].price;
+              }
+
+              if (tmppsdata[y] == undefined) {
+                data.ps3838.away = '-';
+                data.ps3838.home = '-';
+              } else data.ps3838 = tmppsdata[y].moneyline;
+
+              y++;
+            } else if (tmppsdata[y] == undefined) {
+              data.gamedate = tmpbtdata[x].update;
+
+              if (tmpbtdata[x] == undefined) {
+                data.betfair.away = '-';
+                data.betfair.home = '-';
+              } else {
+                data.betfair.away = tmpbtdata[x].moneyline.away.availableToBack[0].price;
+                data.betfair.home = tmpbtdata[x].moneyline.home.availableToBack[0].price;
+              }
+
+              if (tmppsdata[y-1] == undefined) {
+                data.ps3838.away = '-';
+                data.ps3838.home = '-';
+              } else data.ps3838 = tmppsdata[y-1].moneyline;
+              x++;
+            } else {
+              data.gamedate = tmpbtdata[x].update;
+
+              if (tmpbtdata[x] == undefined) {
+                data.betfair.away = '-';
+                data.betfair.home = '-';
+              } else {
+                data.betfair.away = tmpbtdata[x].moneyline.away.availableToBack[0].price;
+                data.betfair.home = tmpbtdata[x].moneyline.home.availableToBack[0].price;
+              }
+
+              if (tmppsdata[y] == undefined) {
+                data.ps3838.away = '-';
+                data.ps3838.home = '-';
+              } else data.ps3838 = tmppsdata[y].moneyline;
+              x++;
+              y++;
+            }
+          }
+    
+          oddtemp.push(data);
+        }
+
+        setOddData(oddtemp);
+      }
+    }
+
   }
 
   const closeDetaildlg = () => {

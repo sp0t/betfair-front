@@ -6,42 +6,23 @@ export const SocketSlice = createSlice({
       connected: false,
       alarmstate: false,
       wmatch: [],
-      wodd:[],
-      wbet:[],
       wstakemode:{},
-      message:'', 
     },
     reducers: {
         setConnect: (state, action) => {
             state.connected = action.payload;
         },
-        setAlarmstate: (state, action) => {
-            state.alarmstate = action.payload;
-        },
         setWmatch: (state, action) => {
             state.wmatch = action.payload;
         },
-        setWodd: (state, action) => {
-            state.wodd = action.payload;
-        },
-        setWbet: (state, action) => {
-            state.wbet = action.payload;
-        },
         setWstakemode: (state, action) => {
             state.wstakemode = action.payload;
-        },
-        setMessage: (state, action) => {
-            state.message = action.payload;
         }
     }
   })
 
-export const { setConnect, setAlarmstate, setWmatch,  setWodd, setWbet, setWstakemode, setMessage } = SocketSlice.actions
+export const { setConnect, setWmatch, setWstakemode } = SocketSlice.actions
 export const Connected = state => state.Socket.connected
-export const Alarmstate = state => state.Socket.alarmstate
 export const Wmatch = state => state.Socket.wmatch
-export const Wodd = state => state.Socket.wodd
-export const Wbet = state => state.Socket.wbet
 export const Wstakemode = state => state.Socket.wstakemode
-export const Message = state => state.Socket.message
 export default SocketSlice.reducer
