@@ -24,7 +24,6 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
   const gstakemode = useSelector(Wstakemode);
   const odddata = useSelector(Wodd);
   const betdata = useSelector(Wbetdata);
-  console.log(Object.keys(betdata).length === 0 && betdata.constructor === Object)
   const [stakemode, setStakeMode] = useState(_stakemode);
   const [modifystakemode, setModifyStakeMode] = React.useState(false);
   const [oddlog, setOddlog] = React.useState(false);
@@ -269,35 +268,35 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
               <div>
                 <div className="flex">
                   <span className="w-20 text-end pr-3">{`Play :`}</span>
-                  <span className="w-40">{betdata.length == 0 || betdata == {} ? '-': betdata[0].gamedate}</span>
+                  <span className="w-40">{Object.keys(betdata).length === 0 && betdata.constructor === Object ? '-': betdata[0].gamedate}</span>
                 </div>
                 <div className="flex">
                   <span className="w-20 text-end pr-3">{`BetTime :`}</span>
-                  <span className="w-40">{betdata.length == 0 || betdata == {} ? '-': betdata[0].betdate}</span>
+                  <span className="w-40">{Object.keys(betdata).length === 0 && betdata.constructor === Object ? '-': betdata[0].betdate}</span>
                 </div>
                 <div className="flex">
                   <span className="w-20 text-end pr-3">{`BetPlace :`}</span>
-                  <span>{betdata.length == 0 || betdata == {} ? '-': betdata[0].place}</span>
+                  <span>{Object.keys(betdata).length === 0 && betdata.constructor === Object ? '-': betdata[0].place}</span>
                 </div>
                 <div className="flex">
                   <span className="w-20 text-end pr-3">{`Stake :`}</span>
-                  <span>{betdata.length == 0 || betdata == {} ? '-': betdata[0].stake}</span>
+                  <span>{Object.keys(betdata).length === 0 && betdata.constructor === Object ? '-': betdata[0].stake}</span>
                 </div>
                 <div className="flex">
                   <span className="w-20 text-end pr-3">{`Odd :`}</span>
-                  <span>{betdata.length == 0 || betdata == {} ? '-': betdata[0].odds}</span>
+                  <span>{Object.keys(betdata).length === 0 && betdata.constructor === Object ? '-': betdata[0].odds}</span>
                 </div>
                 <div className="flex">
                   <span className="w-20 text-end pr-3">{`Profit :`}</span>
-                  <span>{betdata.length == 0 || betdata == {} ? '-': betdata[0].odds * betdata[0].stake}</span>
+                  <span>{Object.keys(betdata).length === 0 && betdata.constructor === Object ? '-': betdata[0].odds * betdata[0].stake}</span>
                 </div>
                 <div className="flex">
                   <span className="w-20 text-end pr-3">{`Market :`}</span>
-                  <span>{betdata.length == 0 || betdata == {} ? '-': 'MoneyLine'}</span>
+                  <span>{Object.keys(betdata).length === 0 && betdata.constructor === Object ? '-': 'MoneyLine'}</span>
                 </div>
                 <div className="flex pt-1">
                   <span className="w-20 text-end pr-3">{`State :`}</span>
-                  <span>{betdata.length == 0 || betdata == {} ? '-': betdata[0].state == 0 ? 'Pending' : betdata[0].state == 2 ? 'Win':'Lose'}</span>
+                  <span>{Object.keys(betdata).length === 0 && betdata.constructor === Object ? '-': betdata[0].state == 0 ? 'Pending' : betdata[0].state == 2 ? 'Win':'Lose'}</span>
                 </div>
               </div>
               <div>
