@@ -15,11 +15,14 @@ import PauseCircleOutlineOutlinedIcon from '@mui/icons-material/PauseCircleOutli
 import PlayCircleFilledWhiteOutlinedIcon from '@mui/icons-material/PlayCircleFilledWhiteOutlined';
 import Button from '@mui/material/Button';
 import { useDispatch, useSelector } from 'react-redux';
-import { Connected, Wmatch, Wodd, Wstakemode } from '../modules/SocketSlice';
+import { Connected, Wmatch, Wodd, Wbetdata, Wstakemode } from '../modules/SocketSlice';
 import { getSocket } from '../modules/websocketManager';
 
 const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stakemode = {}, _betid = '0', _btodd = {away: 0, home: 0}, _psodd = {away: 0, home: 0}, count = 0}) => {
   const gstakemode = useSelector(Wstakemode);
+  const odddata = useSelector(Wodd);
+  const betdata = useSelector(Wbetdata);
+  console.log('betdata', betdata)
   const [stakemode, setStakeMode] = useState(_stakemode);
   const [modifystakemode, setModifyStakeMode] = React.useState(false);
   const [oddlog, setOddlog] = React.useState(false);
@@ -33,9 +36,7 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
   const [probability, setProbability] = useState(_stakemode.probability);
   const [runstate, setRunState] = useState(_stakemode.state);
   const [formulas, setFormula] = useState([]);
-  const [equation, setEquation] = useState('f = (p * (d - 1) -q) / (d - 1)');
-  const [betdata, setBetData] = useState([]);
-  const [odddata, setOddData] = useState([]);
+  const [equation, setEquation] = useState(_stakemode.formula);
 
   useEffect(()=>{
     setStakeMode(_stakemode)
@@ -93,7 +94,6 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
 
   const okModify = React.useCallback(async() => {
     var tmp = JSON.parse(JSON.stringify(stakemode));
-
     tmp.diffmode = diffmode;
     tmp.betmode = betmode;
     tmp.from = diffFrom;
@@ -118,6 +118,7 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
   }, [diffFrom, diffTo, stake, max, diffmode, betmode, probability, max, runstate, equation])
   
   const openDetailDlg = async() => {
+    
     setOddlog(true);
     var socket = getSocket();
     
@@ -131,145 +132,6 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
       };
       socket.send(JSON.stringify(ret));
     }
-
-    socket.onmessage = (event) => {
-      var parseMsg = JSON.parse(event.data);
-      if (parseMsg.type == 'betalarm') {
-        var ret = parseMsg.data;
-        var tmpbtdata = [];
-        var tmppsdata = [];
-        if (ret.betfair != undefined)
-        {
-          tmpbtdata = ret.betfair.market;
-        }
-        if (ret.ps3838 != undefined) {
-          tmppsdata = ret.ps3838.market;
-        }
-        if (ret.betdata)
-            setBetData(ret.betdata);
-        var oddtemp = [];
-        var x = 0;
-        var y = 0;
-    
-        
-    
-        while (x < tmpbtdata.length || y < tmppsdata.length) {
-          var data = {};
-          const date1 = new Date(tmpbtdata[x]).update;
-          const date2 = new Date(tmppsdata[y]).update;
-    
-          data.ps3838 = {};
-          data.betfair = {};
-    
-          if (date1 > date2) {
-            data.gamedate = tmppsdata[y].update;
-            data.ps3838 = tmppsdata[y].moneyline;
-    
-            if (x == 0) {
-              if (tmpbtdata[0] == undefined) {
-                data.betfair.away = '-';
-                data.betfair.home = '-';
-              } else {
-                data.betfair.away = tmpbtdata[0].moneyline.away.availableToBack[0].price;
-                data.betfair.home = tmpbtdata[0].moneyline.home.availableToBack[0].price;
-              }
-            } else {
-              if (tmpbtdata[x-1] == undefined) {
-                data.betfair.away = '-';
-                data.betfair.home = '-';
-              } else {
-                data.betfair.away = tmpbtdata[x-1].moneyline.away.availableToBack[0].price;
-                data.betfair.home = tmpbtdata[x-1].moneyline.home.availableToBack[0].price;
-              }
-            }
-    
-            y++;
-            
-          }else if (date1 < date2) {
-            data.gamedate = tmpbtdata[x].update;
-
-            if (tmpbtdata[x] == undefined) {
-              data.betfair.away = '-';
-              data.betfair.home = '-';
-            } else {
-              data.betfair.away = tmpbtdata[x].moneyline.away.availableToBack[0].price;
-              data.betfair.home = tmpbtdata[x].moneyline.home.availableToBack[0].price;
-            }
-    
-            if (y == 0) {
-              if (tmppsdata[0] == undefined) {
-                data.ps3838.away = '-';
-                data.ps3838.home = '-';
-              } else data.ps3838 = tmppsdata[0].moneyline;
-            } else {
-              if (tmppsdata[y-1] == undefined) {
-                data.ps3838.away = '-';
-                data.ps3838.home = '-';
-              } else data.ps3838 = tmppsdata[y-1].moneyline;
-            }
-  
-            x++;
-          } else {
-    
-            if (tmpbtdata[x] == undefined) {
-              data.gamedate = tmppsdata[y].update;
-              if (tmpbtdata[x-1] == undefined) {
-                data.betfair.away = '-';
-                data.betfair.home = '-';
-              } else {
-                data.betfair.away = tmpbtdata[x-1].moneyline.away.availableToBack[0].price;
-                data.betfair.home = tmpbtdata[x-1].moneyline.home.availableToBack[0].price;
-              }
-
-              if (tmppsdata[y] == undefined) {
-                data.ps3838.away = '-';
-                data.ps3838.home = '-';
-              } else data.ps3838 = tmppsdata[y].moneyline;
-
-              y++;
-            } else if (tmppsdata[y] == undefined) {
-              data.gamedate = tmpbtdata[x].update;
-
-              if (tmpbtdata[x] == undefined) {
-                data.betfair.away = '-';
-                data.betfair.home = '-';
-              } else {
-                data.betfair.away = tmpbtdata[x].moneyline.away.availableToBack[0].price;
-                data.betfair.home = tmpbtdata[x].moneyline.home.availableToBack[0].price;
-              }
-
-              if (tmppsdata[y-1] == undefined) {
-                data.ps3838.away = '-';
-                data.ps3838.home = '-';
-              } else data.ps3838 = tmppsdata[y-1].moneyline;
-              x++;
-            } else {
-              data.gamedate = tmpbtdata[x].update;
-
-              if (tmpbtdata[x] == undefined) {
-                data.betfair.away = '-';
-                data.betfair.home = '-';
-              } else {
-                data.betfair.away = tmpbtdata[x].moneyline.away.availableToBack[0].price;
-                data.betfair.home = tmpbtdata[x].moneyline.home.availableToBack[0].price;
-              }
-
-              if (tmppsdata[y] == undefined) {
-                data.ps3838.away = '-';
-                data.ps3838.home = '-';
-              } else data.ps3838 = tmppsdata[y].moneyline;
-              x++;
-              y++;
-            }
-          }
-    
-          oddtemp.push(data);
-        }
-
-        setOddData(oddtemp);
-      }
-    }
-
   }
 
   const closeDetaildlg = () => {
@@ -304,12 +166,12 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
         </div>
       </div>
       <div className="flex pl-4 -mt-8 xl:-mt-14 space-x-4 py-4 px-4 2xl:px-10">
-        <div className="flex text-center space-x-2">
+        {/* <div className="flex text-center space-x-2">
           <div className="text-end">{stakemode.state ? (stakemode.diffmode == 0 ? 'Fixed' : 'Percent'):(gstakemode.diffmode == 0 ? 'Fixed' : 'Percent')}{':'}</div>
           <span>{stakemode.state ? (stakemode.diffmode == 0 ? `${stakemode.from}`: `${stakemode.from}%`):(gstakemode.diffmode == 0 ? `${gstakemode.from}`: `${gstakemode.from}%`)}</span>
           <span>~</span>
           <span>{stakemode.state ? (stakemode.diffmode == 0 ? `${stakemode.to} `: `${stakemode.to} %`):(gstakemode.diffmode == 0 ? `${gstakemode.to} `: `${gstakemode.to} %`)}</span>
-        </div>
+        </div> */}
         <div className="flex text-center space-x-2">
           <div>Stake :</div>
           <span>{stakemode.state ? (stakemode.betmode == 0 ? `$${stakemode.stake}`: `${stakemode.stake}%`):(gstakemode.betmode == 0 ? `$${gstakemode.stake}`: `${gstakemode.stake}%`)}</span>
@@ -322,17 +184,20 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
           <div>Probability :</div>
           <span>{`${stakemode.probability}%`}</span>
         </div>
-      </div>
-      <div className="flex pl-4 -mt-5 space-x-4 py-4 px-4 2xl:px-10">
-        <div className="flex text-center space-x-2">
-          <div className="">{'Formula:'}</div>
-          <span>{stakemode.formula}</span>
-        </div>
         <div className="flex text-center space-x-2">
           <div>Kelly Balance :</div>
           <span>{`$${stakemode.kellybalance}`}</span>
         </div>
-        
+      </div>
+      <div className="md:flex pl-4 -mt-5 space-x-4 py-4 px-4 2xl:px-10">
+        <div className="flex text-center space-x-2">
+          <div className="">{'Formula:'}</div>
+          <span>{stakemode.formula}</span>
+        </div>
+        {/* <div className="flex text-center space-x-2">
+          <div>Kelly Balance :</div>
+          <span>{`$${stakemode.kellybalance}`}</span>
+        </div> */}  
         <div className="hover:cursor-pointer pl-4" onClick={() => setModifyStakeMode(true)}>
           <ModeEditOutlineOutlinedIcon className=""></ModeEditOutlineOutlinedIcon>
         </div>
@@ -346,7 +211,7 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
             <CloseIcon className="text-white"></CloseIcon>
           </div>
           <div className="text-white pt-5">
-            <div className="flex space-x-1 sm:space-x-3 sm:px-4 mb-2">
+            {/* <div className="flex space-x-1 sm:space-x-3 sm:px-4 mb-2">
               <span className="w-16 sm:w-20 text-end">{'Diff :'}</span>
               <select className="cursor-pointer block w-22 p-1 overflow-auto text-sm text-center bg-sky-950 text-white border rounded-md" onChange={(e) => setDiffMode(e.target.value)}>
                 <option className="cursor-pointer" value={0} selected = {diffmode == 0}>Fiexd</option>
@@ -356,15 +221,15 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
               <span className="px-3 sm:px-0">~</span>
               <input type="number" className="text-sm w-16 sm:w-20 text-center bg-sky-950 text-white border rounded-md" min="0" value={diffTo} required onChange={(e) => setDiffTo(e.target.value)}></input>
               <span className="">{diffmode == 0 ? '':'(%)'}</span>
-            </div>
+            </div> */}
             <div className="flex space-x-1 sm:space-x-3 sm:px-4 mb-2">
               <span className="w-16 sm:w-20 text-end">{betmode == 0 ? 'Stake($) :':'Stake :'}</span>
-              <select className="cursor-pointer block w-22 p-1 overflow-auto text-sm text-center bg-sky-950 text-white border rounded-md" onChange={(e) => setBetMode(e.target.value)}>
+              {/* <select className="cursor-pointer block w-22 p-1 overflow-auto text-sm text-center bg-sky-950 text-white border rounded-md" onChange={(e) => setBetMode(e.target.value)}>
                 <option className="cursor-pointer" value={0} selected = {betmode == 0}>Fiexd</option>
                 <option className="cursor-pointer" value={1} selected = {betmode == 1}>Percent</option>
-              </select>
+              </select> */}
               <div className="flex">
-                <input type="number" className="text-sm w-16 sm:w-20 text-center bg-sky-950 text-white border rounded-md" min="0" value={stake} required onChange={(e) => setStake(e.target.value)}></input>
+                <input type="number" className="py-1 text-sm w-16 sm:w-20 text-center bg-sky-950 text-white border rounded-md" min="0" value={stake} required onChange={(e) => setStake(e.target.value)}></input>
               </div>
               <span className="">{betmode == 0 ? '':'(%)'}</span>
             </div>
@@ -383,7 +248,7 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
               <span className="sm:pl-2 w-20 sm:w-24 text-end">{'Formula :'}</span>
               <select className="cursor-pointer block p-1 w-full overflow-auto text-sm text-center bg-sky-950 text-white border rounded-md" onChange={(e) => setEquation(e.target.value)}>
               {formulas.map((el, index) => (
-                <option className="cursor-pointer" value={el.formula} selected = {el.formula == equation} key = {index} >{el.formula}</option>
+                <option className="cursor-pointer" value={el.formula} selected = {el.formula == equation ? true: false} key = {index} >{el.formula}</option>
               ))}
               </select>
             </div>
@@ -548,14 +413,14 @@ React.useEffect(() => {
   };
   run();
 
-  var socket = getSocket();
+  // var socket = getSocket();
 
-  socket.onmessage = (event) => {
-    var parseMsg = JSON.parse(event.data);
-    if (parseMsg.type == 'betalarm') {
-      toast.success(parseMsg.data);
-    }
-  }
+  // socket.onmessage = (event) => {
+  //   var parseMsg = JSON.parse(event.data);
+  //   if (parseMsg.type == 'betalarm') {
+  //     toast.success(parseMsg.data);
+  //   }
+  // }
 }, []);
 
 useEffect(() => {

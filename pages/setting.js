@@ -327,7 +327,7 @@ const SportCard = ({ img = '', name = '', _monit = true, _betting = false, _play
               <div className="mb-2 text-2xl font-bold flex justify-center w-full text-purple-900 sm:mb-4 sm:text-3xl">
                 <h1>Stake Mode</h1>
               </div>
-              <div className="flex space-x-2 px-2 mb-2">
+              {/* <div className="flex space-x-2 px-2 mb-2">
                 <h1 className="mr-3 mt-1">Diff</h1>
                 <select className="cursor-pointer block w-18 p-1 overflow-auto text-sm text-center bg-orange-500 text-black border rounded-md" onChange={(e) => setDiffMode(e.target.value)}>
                   <option className="cursor-pointer" value={0}>Fiexd</option>
@@ -337,37 +337,36 @@ const SportCard = ({ img = '', name = '', _monit = true, _betting = false, _play
                 <h1 className="px-3.5">~</h1>
                 <input type="number" className="text-sm w-16 text-center bg-white text-black border rounded-md" min="0" required onChange={(e) => setTo(e.target.value)}></input>
                 <h1 className=""></h1>
-              </div>
-              <div className="flex space-x-2 px-2 mb-4">
-                <h1 className="mt-1">Stake</h1>
-                <select className="cursor-pointer block w-18 p-1 overflow-auto text-sm text-center bg-orange-500 text-black border rounded-md " onChange={(e) => setBetMode(e.target.value)}>
+              </div> */}
+              <div className="flex justify-around px-2 mb-4">
+                <h1 className="">Stake($):</h1>
+                {/* <select className="cursor-pointer block w-18 p-1 overflow-auto text-sm text-center bg-orange-500 text-black border rounded-md " onChange={(e) => setBetMode(e.target.value)}>
                   <option className="cursor-pointer" value={0}>Fiexd</option>
                   <option className="cursor-pointer" value={1}>Percent</option>
-                </select>
+                </select> */}
                 <div className="flex">
                   <input type="number" className="text-sm w-16 text-center bg-white text-black border rounded-md" min="0" required onChange={(e) => setStake(e.target.value)}></input>
                 </div>
                 <h1 className=""></h1>
-                <h1 className="mr-2">Max</h1>
+                <h1 className="mr-2 pl-8">Max($):</h1>
                 <div className="flex">
                   <input type="number" className="py-1 text-sm w-16 text-center bg-white text-black border rounded-md" min="0" required onChange={(e) => setMax(e.target.value)}></input>
                 </div>
-                <h1 className="">($)</h1>
                 <div className="flex items-end mb-0.5">
                   <button className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-3 py-1" onClick={() => addPrice()}>+</button>
                 </div>
               </div>
-              <div className="h-[375px] sm:h-[278px] overflow-y-auto bg-blue-50 p-1 sm:p-2 rounded-lg">
+              <div className="h-[360px] sm:h-[320px] overflow-y-auto bg-blue-50 p-1 sm:p-2 rounded-lg">
                 {stakemodedata.map((val, index) => (
                   <div className="p-2 mb-1 sm:mb-2 text-blue-800 rounded-lg text-base bg-orange-400 dark:bg-gray-800 dark:text-blue-400 flex" key={index}>
                     <div className="flex justify-between items-center w-full text-md font-bold">
-                      <div className="flex text-center">
+                      {/* <div className="flex text-center">
                         <div className="w-20 text-end">{val.diffmode == 0 ? 'Fixed:':'Percent:'}</div>
                         <h1 className="pl-1">{val.diffmode == 0 ? `${val.from} `: `${val.from}`}</h1>
                         <h1>~</h1>
                         <h1>{val.diffmode == 0 ? `${val.to} `: `${val.to}`}</h1>
-                      </div>
-                      <div className="flex text-center">
+                      </div> */}
+                      <div className="flex text-center pl-3">
                         <div>Stake:</div>
                         <h1 className="pl-1">{val.betmode == 0 ? `$${val.stake}`: `${val.stake}%`}</h1>
                       </div>
