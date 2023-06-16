@@ -7,7 +7,7 @@ export const SocketSlice = createSlice({
       alarmstate: false,
       wmatch: [],
       wodd: [],
-      wbetdata:[],
+      wbetdata:{},
       wstakemode:{},
     },
     reducers: {

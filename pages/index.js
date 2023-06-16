@@ -268,27 +268,27 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
               <div>
                 <div className="flex">
                   <span className="w-20 text-end pr-3">{`Play :`}</span>
-                  <span className="w-40">{(Object.keys(betdata).length === 0 || betdata.length === 0) ? '-': betdata[0].gamedate}</span>
+                  <span className="w-40">{(Object.keys(betdata).length === 0 || betdata.length === 0) ? '-': betdata.gamedate}</span>
                 </div>
                 <div className="flex">
                   <span className="w-20 text-end pr-3">{`BetTime :`}</span>
-                  <span className="w-40">{(Object.keys(betdata).length === 0 || betdata.length === 0) ? '-': betdata[0].betdate}</span>
+                  <span className="w-40">{(Object.keys(betdata).length === 0 || betdata.length === 0) ? '-': betdata.betdate}</span>
                 </div>
                 <div className="flex">
                   <span className="w-20 text-end pr-3">{`BetPlace :`}</span>
-                  <span>{(Object.keys(betdata).length === 0 || betdata.length === 0) ? '-': betdata[0].place}</span>
+                  <span>{(Object.keys(betdata).length === 0 || betdata.length === 0) ? '-': betdata.place}</span>
                 </div>
                 <div className="flex">
                   <span className="w-20 text-end pr-3">{`Stake :`}</span>
-                  <span>{(Object.keys(betdata).length === 0 || betdata.length === 0) ? '-': betdata[0].stake}</span>
+                  <span>{(Object.keys(betdata).length === 0 || betdata.length === 0) ? '-': betdata.stake}</span>
                 </div>
                 <div className="flex">
                   <span className="w-20 text-end pr-3">{`Odd :`}</span>
-                  <span>{(Object.keys(betdata).length === 0 || betdata.length === 0) ? '-': betdata[0].odds}</span>
+                  <span>{(Object.keys(betdata).length === 0 || betdata.length === 0) ? '-': betdata.odds}</span>
                 </div>
                 <div className="flex">
                   <span className="w-20 text-end pr-3">{`Profit :`}</span>
-                  <span>{(Object.keys(betdata).length === 0 || betdata.length === 0) ? '-': betdata[0].odds * betdata[0].stake}</span>
+                  <span>{(Object.keys(betdata).length === 0 || betdata.length === 0) ? '-': betdata.odds * betdata.stake}</span>
                 </div>
                 <div className="flex">
                   <span className="w-20 text-end pr-3">{`Market :`}</span>
@@ -296,7 +296,7 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
                 </div>
                 <div className="flex pt-1">
                   <span className="w-20 text-end pr-3">{`State :`}</span>
-                  <span>{(Object.keys(betdata).length === 0 || betdata.length === 0) ? '-': betdata[0].state == 0 ? 'Pending' : betdata[0].state == 2 ? 'Win':'Lose'}</span>
+                  <span>{(Object.keys(betdata).length === 0 || betdata.length === 0) ? '-': betdata.state == 0 ? 'Pending' : betdata.state == 2 ? 'Win':'Lose'}</span>
                 </div>
               </div>
               <div>
