@@ -7,7 +7,9 @@ let socket = null;
 
 export const initSocket = (reduxStore) => {
   store = reduxStore;
-  socket = new WebSocket(process.env.NEXT_PUBLIC_WEBSOCKETURL);
+
+  if (!socket)
+    socket = new WebSocket(process.env.NEXT_PUBLIC_WEBSOCKETURL);
 
   socket.onopen = () => {
     store.dispatch(setConnect(true));
@@ -16,7 +18,6 @@ export const initSocket = (reduxStore) => {
   socket.onmessage = (event) => {
     var parseMsg = JSON.parse(event.data);
       if (parseMsg.type == 'SportLeagueName') {
-        console.log('SportLeagueName=================>')
         store.dispatch(setWmatch(parseMsg.data));
         store.dispatch(setWstakemode(parseMsg.stakemode));
       }
@@ -24,6 +25,7 @@ export const initSocket = (reduxStore) => {
         var ret = parseMsg.data;
         var tmpbtdata = [];
         var tmppsdata = [];
+
         if (ret.betfair != undefined)
         {
           tmpbtdata = ret.betfair.market;
@@ -31,8 +33,8 @@ export const initSocket = (reduxStore) => {
         if (ret.ps3838 != undefined) {
           tmppsdata = ret.ps3838.market;
         }
-        if (ret.betdata) {
-          console.log('=============================================> receive BetInformation!!!', ret.betdata);
+        if (ret.betdata != undefined) {
+          console.log('betdata===========>', ret.betdata)
           store.dispatch(setWbetdata(ret.betdata));
         }
         var oddtemp = [];
@@ -163,5 +165,30 @@ export const initSocket = (reduxStore) => {
 
   return socket;
 };
+
+export const sendSportLeagueName = (sport, leauge) => {
+  if (socket && socket.readyState === WebSocket.OPEN) {
+    var ret = {
+      type: 'SportLeagueName',
+      sportname: sport,
+      competitionname: leauge
+    };
+    socket.send(JSON.stringify(ret));
+  }
+}
+
+export const sendBetInfor = (monitid, betid, away, home) => {
+  if (socket && socket.readyState === WebSocket.OPEN) {
+    var ret = {
+      type: 'BetInformation',
+      monitid: monitid,
+      betid: betid,
+      away: away, 
+      home: home
+    };
+    socket.send(JSON.stringify(ret));
+  }
+}
+
 
 export const getSocket = () => socket;

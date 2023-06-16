@@ -16,13 +16,14 @@ import PlayCircleFilledWhiteOutlinedIcon from '@mui/icons-material/PlayCircleFil
 import Button from '@mui/material/Button';
 import { useDispatch, useSelector } from 'react-redux';
 import { Connected, Wmatch, Wodd, Wbetdata, Wstakemode } from '../modules/SocketSlice';
-import { getSocket } from '../modules/websocketManager';
+import { initSocket, sendSportLeagueName, sendBetInfor } from '../modules/websocketManager';
+import store from '../modules/store'
+import { CoPresentOutlined } from "@mui/icons-material";
 
 const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stakemode = {}, _betid = '0', _btodd = {away: 0, home: 0}, _psodd = {away: 0, home: 0}, count = 0}) => {
   const gstakemode = useSelector(Wstakemode);
   const odddata = useSelector(Wodd);
   const betdata = useSelector(Wbetdata);
-  console.log('betdata', betdata)
   const [stakemode, setStakeMode] = useState(_stakemode);
   const [modifystakemode, setModifyStakeMode] = React.useState(false);
   const [oddlog, setOddlog] = React.useState(false);
@@ -46,6 +47,7 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
     const run = async() => {
       var ret = await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getFormula`);
       setFormula(ret.data);
+      console.log()
     } 
     run();
   }, []);
@@ -120,18 +122,7 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
   const openDetailDlg = async() => {
     
     setOddlog(true);
-    var socket = getSocket();
-    
-    if (socket && socket.readyState === WebSocket.OPEN) {
-      var ret = {
-        type: 'BetInformation',
-        monitid: _monitid,
-        betid: _betid,
-        away: _away, 
-        home: _home
-      };
-      socket.send(JSON.stringify(ret));
-    }
+    sendBetInfor(_monitid, _betid, _away, _home);
   }
 
   const closeDetaildlg = () => {
@@ -388,7 +379,6 @@ const Explorer = () => {
   
 // const dispatch = useDispatch();
 const matchData = useSelector(Wmatch);
-const dispatch = useDispatch();
 
 const [monitmenu, setMonitMenu] = useState([]);
 const [sportmenu, setSportMenu] = useState([]);
@@ -410,29 +400,14 @@ React.useEffect(() => {
 
     setMonitMenu(monitor.data);
     setSportMenu(tmpSport);
+    initSocket(store);
+
   };
   run();
-
-  // var socket = getSocket();
-
-  // socket.onmessage = (event) => {
-  //   var parseMsg = JSON.parse(event.data);
-  //   if (parseMsg.type == 'betalarm') {
-  //     toast.success(parseMsg.data);
-  //   }
-  // }
 }, []);
 
 useEffect(() => {
-  var socket = getSocket();
-  if (socket && socket.readyState === WebSocket.OPEN) {
-    var ret = {
-      type: 'SportLeagueName',
-      sportname: selectsport,
-      competitionname: selectcompetition
-    };
-    socket.send(JSON.stringify(ret));
-  }
+  sendSportLeagueName(selectsport, selectcompetition);
 }, [selectsport, selectcompetition])
 
 useEffect(() => {
@@ -444,7 +419,6 @@ useEffect(() => {
       tmpcompetition.push(sportname.replace(`${val[0]}-`, '') );
     }
   }
-
   setCompetitionMenu(tmpcompetition);
 
 }, [selectsport])
