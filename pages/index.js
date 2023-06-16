@@ -24,7 +24,7 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
   const gstakemode = useSelector(Wstakemode);
   const odddata = useSelector(Wodd);
   const betdata = useSelector(Wbetdata);
-  console.log(typeof betdata)
+  console.log(Object.keys(betdata).length === 0 && betdata.constructor === Object)
   const [stakemode, setStakeMode] = useState(_stakemode);
   const [modifystakemode, setModifyStakeMode] = React.useState(false);
   const [oddlog, setOddlog] = React.useState(false);
