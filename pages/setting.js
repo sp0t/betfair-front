@@ -18,8 +18,6 @@ const SportCard = ({ img = '', name = '', _monit = true, _betting = false, _play
   const [monit, setMonitState] = useState(_monit);
   const [betting, setBettingState] = useState(_betting);
   const [playmode, setPlaymodeState] = useState(_playmode);
-  const [kelly, setKellyState] = useState(_kelly);
-  const [market, setMarketState] = useState(_market);
 
   const setMonit = async (check) => {
     setMonitState(check)
@@ -52,22 +50,6 @@ const SportCard = ({ img = '', name = '', _monit = true, _betting = false, _play
     }
   }
 
-  const setKelly = async (check) => {
-    setKellyState(check)
-    try {
-      const result = await axios.post(process.env.NEXT_PUBLIC_APIURL + 'setKellyMode', { "sport": name, "state": check });
-      console.log(result)
-
-      if (check) toast.success(`Will bet on ${name} matchs with Kelly criterion.`);
-      else toast.success(`Will stop betting on ${name} matchs Kelly criterion.`);
-    } catch (error) {
-      toast.error(`${name} betting set error.`);
-      setKellyState(!check)
-      console.error(error);
-      return;
-    }
-  }
-
   const setPlayMode = async (check) => {
     setPlaymodeState(check)
     try {
@@ -83,22 +65,6 @@ const SportCard = ({ img = '', name = '', _monit = true, _betting = false, _play
       return;
     }
   }
-
-  const setMarket = async (check) => {
-    setMarketState(check)
-    try {
-      const result = await axios.post(process.env.NEXT_PUBLIC_APIURL + 'setMarket', { sport: name, state: check });
-      console.log(result)
-
-      if (check) toast.success(`${name} market setting success.`);
-    } catch (error) {
-      toast.error(`${name} market setting error.`);
-      setMarketState(!check)
-      console.error(error);
-      return;
-    }
-  }
-
   return (
     <div className="p-2 mb-1 sm:p-3 sm:mb-2 items-center text-blue-700 rounded-lg text-base bg-orange-400 hover:bg-orange-500 hover:text-blue-800 dark:bg-gray-800 dark:text-blue-400">
       <div className="flex mb-2">
@@ -126,12 +92,6 @@ const SportCard = ({ img = '', name = '', _monit = true, _betting = false, _play
                 <label htmlFor="betting" className="w-full py-1 ml-1 text-sm font-medium text-gray-900 dark:text-gray-300">Betting</label>
               </div>
             </li>
-            <li className="w-full rounded-t-lg dark:border-gray-600">
-              <div className="flex items-center pl-3">
-                <input type="checkbox" value="" name="betting" checked={kelly} className="w-4 h-4 text-blue-600 bg-gray-100 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500 hover:cursor-pointer" onChange={(e) => setKelly(e.target.checked)}></input>
-                <label htmlFor="betting" className="w-full py-1 ml-1 text-sm font-medium text-gray-900 dark:text-gray-300">Kelly</label>
-              </div>
-            </li>
           </ul>
         </div>
       </div>
@@ -145,18 +105,19 @@ const SportCard = ({ img = '', name = '', _monit = true, _betting = false, _play
   const [searchkey, setSearchKey] = useState('');
 
   const [filteredData, setFilteredData] = useState([]);
-  const [stakemodedata, setStakeModeData] = useState([]);
-  const [diffmode, setDiffMode] = useState(0);
-  const [betmode, setBetMode] = useState(0);
-  const [from, setFrom] = useState(0);
-  const [to, setTo] = useState(0);
-  const [stake, setStake] = useState(0);
+  const [stakemodedata, setStakeModeData] = useState({});
+  const [edge, setEdge] = useState(0);
   const [max, setMax] = useState(0);
+  const [mdmax, setMdMax] = useState(0);
+  const [mdedge, setMdEdge] = useState(0);
+  const [mdkellybalance, setMdkellybalance] = useState(0);
+  const [kellybalance, setKellybalance] = useState(0);
   const [totalfund, setTotalFund] = useState(0);
   const [maxfund, setMaxFund] = useState(0);
   const [modifymaxfund, setModifyMaxFund] = useState(0);
   const [availablefund, setAvailableFund] = useState(0);
   const [maxdlgflag, setMaxDlgFlag] = useState(false);
+  const [modifystakemode, setModifyStakeMode] = React.useState(false);
 
   React.useEffect(() => {
     const run = async () => {
@@ -166,7 +127,7 @@ const SportCard = ({ img = '', name = '', _monit = true, _betting = false, _play
         await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getBalance`)
       ])
 
-      setStakeModeData(price.data);
+      setStakeModeData(price.data[0]);
       setSportData(sport.data);
       setFilteredData(sport.data);
       setTotalFund(balance.data.total);
@@ -181,36 +142,10 @@ const SportCard = ({ img = '', name = '', _monit = true, _betting = false, _play
     setFilteredData(!!searchkey ? sportData.filter(el => el.sport.toLowerCase().includes(searchkey.toLowerCase())) : sportData);
   }, [searchkey, sportData]);
 
- const addPrice = React.useCallback(async () => {
-    var data = {};
-    var temp = JSON.parse(JSON.stringify(stakemodedata));
-
-    if (to <= from) {
-      toast.info('Under value should bigger than Over value.');
-      return;
-    }
-
-    if ( stake <= 0) {
-      toast.info('stake value should bigger than zero.');
-      return;
-    }
-
-    for (var x in temp) {
-      if (temp[x].from == from && temp[x].to == to && temp[x].betmode == betmode && temp[x].diffmode == diffmode) {
-        toast.info('Already added.');
-        return;
-      }
-    }
-
-    data.diffmode = diffmode;
-    data.betmode = betmode;
-    data.from = from;
-    data.to = to;
-    data.stake = stake;
-    data.max = max;
+ const addPrice = React.useCallback(async() => {
 
     try {
-      const result = await axios.post(process.env.NEXT_PUBLIC_APIURL + 'addStakeMode', {diffmode:diffmode, betmode:betmode, from: from, to: to, stake: stake, max: max, state: true });
+      const result = await axios.post(process.env.NEXT_PUBLIC_APIURL + 'addStakeMode', {edge:edge, max:max, kellybalance: kellybalance});
       console.log(result)
       temp.push(data)
       toast.success(`StakeMode( ${from} ~ ${to} ) added.`);
@@ -221,27 +156,12 @@ const SportCard = ({ img = '', name = '', _monit = true, _betting = false, _play
       return;
     }
 
-  }, [diffmode, betmode, from, to, stake, max, stakemodedata]);
+  }, [edge, max, kellybalance]);
 
   const devideString = (data) => {
     const val = data.split("-");
     const extracted = val[0].trim();
     return extracted;
-  }
-
-  const removePrice = async (index) => {
-    var temp = JSON.parse(JSON.stringify(stakemodedata));
-    var from = temp[index].from;
-    var to = temp[index].to;
-
-    try {
-      const result = await axios.post(process.env.NEXT_PUBLIC_APIURL + 'removeStakeMode', {diffmode: temp[index].diffmode, betmode: temp[index].betmode, stake:temp[index].stake, from: temp[index].from, to: temp[index].to, state: true });
-      temp.splice(index, 1);
-      toast.success(`Price ( ${from} ~ ${to} ) removed.`);
-      setStakeModeData(temp);
-    } catch (error) {
-      console.error(error);
-    }
   }
 
  const setMaxBalance = React.useCallback( async() => {
@@ -275,6 +195,32 @@ const SportCard = ({ img = '', name = '', _monit = true, _betting = false, _play
     toast.error(`Failed!`);
   }
  }
+
+ const cancelModfy = () => {
+  setMdMax(stakemodedata.max);
+  setMdEdge(stakemodedata.edge);
+  setMdkellybalance(stakemodedata.kellybalance);
+  setModifyStakeMode(false);
+}
+
+const okModify = React.useCallback(async() => {
+  var tmp = JSON.parse(JSON.stringify(stakemode));
+  tmp.edge = mdedge;
+  tmp.max = mdmax;
+  tmp.kellybalance = mdkellybalance;
+
+  try {
+    const result = await axios.post(process.env.NEXT_PUBLIC_APIURL + 'setMatchStakeMode', { edge: mdedge, max: mdmax, kellybalance: mdkellybalance });
+    toast.success(`Success.`);
+    setStakeModeData(tmp);
+    setModifyStakeMode(false);
+  } catch (error) {
+    toast.error(`Failed.`);
+    console.error(error);
+    return;
+  }
+  
+}, [mdmax, mdkellybalance, mdedge])
 
   return (
     <>
@@ -338,14 +284,14 @@ const SportCard = ({ img = '', name = '', _monit = true, _betting = false, _play
                 <input type="number" className="text-sm w-16 text-center bg-white text-black border rounded-md" min="0" required onChange={(e) => setTo(e.target.value)}></input>
                 <h1 className=""></h1>
               </div> */}
-              <div className="flex justify-around px-2 mb-4">
-                <h1 className="">Stake($):</h1>
-                {/* <select className="cursor-pointer block w-18 p-1 overflow-auto text-sm text-center bg-orange-500 text-black border rounded-md " onChange={(e) => setBetMode(e.target.value)}>
+              {/* <div className="flex justify-around px-2 mb-4">
+                <h1 className="">Edge(%):</h1>
+                <select className="cursor-pointer block w-18 p-1 overflow-auto text-sm text-center bg-orange-500 text-black border rounded-md " onChange={(e) => setBetMode(e.target.value)}>
                   <option className="cursor-pointer" value={0}>Fiexd</option>
                   <option className="cursor-pointer" value={1}>Percent</option>
-                </select> */}
+                </select>
                 <div className="flex">
-                  <input type="number" className="text-sm w-16 text-center bg-white text-black border rounded-md" min="0" required onChange={(e) => setStake(e.target.value)}></input>
+                  <input type="number" className="text-sm w-16 text-center bg-white text-black border rounded-md" min="0" required onChange={(e) => setEdge(e.target.value)}></input>
                 </div>
                 <h1 className=""></h1>
                 <h1 className="mr-2 pl-8">Max($):</h1>
@@ -355,10 +301,9 @@ const SportCard = ({ img = '', name = '', _monit = true, _betting = false, _play
                 <div className="flex items-end mb-0.5">
                   <button className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-3 py-1" onClick={() => addPrice()}>+</button>
                 </div>
-              </div>
-              <div className="h-[360px] sm:h-[320px] overflow-y-auto bg-blue-50 p-1 sm:p-2 rounded-lg">
-                {stakemodedata.map((val, index) => (
-                  <div className="p-2 mb-1 sm:mb-2 text-blue-800 rounded-lg text-base bg-orange-400 dark:bg-gray-800 dark:text-blue-400 flex" key={index}>
+              </div> */}
+              <div className="h-[400px] sm:h-[360px] overflow-y-auto bg-blue-50 p-1 sm:p-2 rounded-lg">
+                  <div className="p-2 mb-1 sm:mb-2 text-blue-800 rounded-lg text-base bg-orange-400 dark:bg-gray-800 dark:text-blue-400 flex">
                     <div className="flex justify-between items-center w-full text-md font-bold">
                       {/* <div className="flex text-center">
                         <div className="w-20 text-end">{val.diffmode == 0 ? 'Fixed:':'Percent:'}</div>
@@ -366,22 +311,23 @@ const SportCard = ({ img = '', name = '', _monit = true, _betting = false, _play
                         <h1>~</h1>
                         <h1>{val.diffmode == 0 ? `${val.to} `: `${val.to}`}</h1>
                       </div> */}
-                      <div className="flex text-center pl-3">
-                        <div>Stake:</div>
-                        <h1 className="pl-1">{val.betmode == 0 ? `$${val.stake}`: `${val.stake}%`}</h1>
-                      </div>
                       <div className="flex text-center">
                         <div>Max:</div>
-                        <h1 className="pl-1">{`$${val.max}`}</h1>
+                        <h1 className="pl-1">{`$${stakemodedata == undefined? '-' :stakemodedata.max}`}</h1>
                       </div>
-                      <button type="button" className="text-white p-2 bg-blue-700 hover:bg-blue-900 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium text-sm text-center inline-flex items-center mr-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-900 rounded-full" onClick={(e) => removePrice(index)}>
-                        <svg fill="none" className="w-4 h-4" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"></path>
-                        </svg>
-                      </button>
+                      <div className="flex text-center pl-3">
+                        <div>Edge:</div>
+                        <h1 className="pl-1">{`${stakemodedata == undefined? '-' :stakemodedata.edge}%`}</h1>
+                      </div>
+                      <div className="flex text-center">
+                        <div>Kellybalance:</div>
+                        <h1 className="pl-1">{`$${stakemodedata == undefined? '-' :stakemodedata.kellybalance}`}</h1>
+                      </div>
+                      <div className="pl-8 hover:cursor-pointer" onClick={() => setModifyStakeMode(true)}>
+                        <ModeEditOutlineOutlinedIcon className="mb-1"></ModeEditOutlineOutlinedIcon>
+                      </div>
                     </div>
                   </div>
-                ))}
                </div>
             </div>
           </div>
@@ -400,6 +346,41 @@ const SportCard = ({ img = '', name = '', _monit = true, _betting = false, _play
                 Cancel
               </Button>
               <Button variant="outlined"  style={{backgroundColor: "rgb(23 37 84)", border:"1px solid white", color:"white"}} onClick={() => setMaxBalance()} >
+                OK
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+        <Dialog onClose={() => cancelModfy()} open={modifystakemode}>
+          <DialogContent className="modifymonitor bg-sky-950 pt-10">
+            <div className="absolute top-2 right-2 p-1 cursor-pointer hover:bg-slate-400 rounded-full" onClick={() => cancelModfy()}>
+              <CloseIcon className="text-white"></CloseIcon>
+            </div>
+            <div className="pt-5">
+              <div className="flex mb-3">
+                <span className="w-32 text-end text-white">{'Max($) :'}</span>
+                <div className="flex pl-2">
+                  <input type="number" className="py-1 text-sm w-20 text-center bg-sky-950 text-white border rounded-md" min="0" value={mdmax} required onChange={(e) => setMdMax(e.target.value)}></input>
+                </div>
+              </div>
+              <div className="flex mb-3">
+                <span className="w-32 text-end text-white">{'Edge(%) :'}</span>
+                <div className="flex pl-2">
+                  <input type="number" className="py-1 text-sm w-20 text-center bg-sky-950 text-white border rounded-md" min="0" value={mdedge} required onChange={(e) => setMdEdge(e.target.value)}></input>
+                </div>
+              </div>
+              <div className="flex mb-3">
+                <span className="w-32 text-end text-white">{'KellyBalance($) :'}</span>
+                <div className="flex pl-2">
+                  <input type="number" className="py-1 text-sm w-20 text-center bg-sky-950 text-white border rounded-md" min="0" value={mdkellybalance} required onChange={(e) => setMdkellybalance(e.target.value)}></input>
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-center pt-2 space-x-8">
+              <Button variant="outlined"  style={{backgroundColor: "rgb(23 37 84)", border:"1px solid white", color:"white"}} onClick={() => cancelModfy()}>
+                Cancel
+              </Button>
+              <Button variant="outlined"  style={{backgroundColor: "rgb(23 37 84)", border:"1px solid white", color:"white", paddingLeft:"34px", paddingRight:"34px"}} onClick={() => okModify()}>
                 OK
               </Button>
             </div>

@@ -1,6 +1,7 @@
 // websocketManager.js
 
-import { setConnect, setWmatch, setWodd, setWbetdata, setWstakemode } from './SocketSlice';
+import { setConnect, setWmatch, setWodd, setWbetdata, setSendTime } from './SocketSlice';
+import { ToastContainer, toast } from 'react-toastify';
 
 let store = null;
 let socket = null;
@@ -17,9 +18,13 @@ export const initSocket = (reduxStore) => {
 
   socket.onmessage = (event) => {
     var parseMsg = JSON.parse(event.data);
+      if (parseMsg.type == 'betalarm') {
+        toast.success(parseMsg.data)
+      }
       if (parseMsg.type == 'SportLeagueName') {
+        console.log('betdata===========>', parseMsg)
         store.dispatch(setWmatch(parseMsg.data));
-        store.dispatch(setWstakemode(parseMsg.stakemode));
+        store.dispatch(setSendTime(parseMsg.time));
       }
       if (parseMsg.type == 'BetInformation') {
         var ret = parseMsg.data;
@@ -34,7 +39,6 @@ export const initSocket = (reduxStore) => {
           tmppsdata = ret.ps3838.market;
         }
         if (ret.betdata != undefined) {
-          console.log('betdata===========>', ret.betdata)
           store.dispatch(setWbetdata(ret.betdata));
         }
         var oddtemp = [];
@@ -60,16 +64,16 @@ export const initSocket = (reduxStore) => {
                 data.betfair.away = '-';
                 data.betfair.home = '-';
               } else {
-                data.betfair.away = tmpbtdata[0].moneyline.away.availableToBack[0].price;
-                data.betfair.home = tmpbtdata[0].moneyline.home.availableToBack[0].price;
+                data.betfair.away = tmpbtdata[0].moneyline.away;
+                data.betfair.home = tmpbtdata[0].moneyline.home;
               }
             } else {
               if (tmpbtdata[x-1] == undefined) {
                 data.betfair.away = '-';
                 data.betfair.home = '-';
               } else {
-                data.betfair.away = tmpbtdata[x-1].moneyline.away.availableToBack[0].price;
-                data.betfair.home = tmpbtdata[x-1].moneyline.home.availableToBack[0].price;
+                data.betfair.away = tmpbtdata[x-1].moneyline.away;
+                data.betfair.home = tmpbtdata[x-1].moneyline.home;
               }
             }
     
@@ -82,8 +86,8 @@ export const initSocket = (reduxStore) => {
               data.betfair.away = '-';
               data.betfair.home = '-';
             } else {
-              data.betfair.away = tmpbtdata[x].moneyline.away.availableToBack[0].price;
-              data.betfair.home = tmpbtdata[x].moneyline.home.availableToBack[0].price;
+              data.betfair.away = tmpbtdata[x].moneyline.away;
+              data.betfair.home = tmpbtdata[x].moneyline.home;
             }
     
             if (y == 0) {
@@ -107,8 +111,8 @@ export const initSocket = (reduxStore) => {
                 data.betfair.away = '-';
                 data.betfair.home = '-';
               } else {
-                data.betfair.away = tmpbtdata[x-1].moneyline.away.availableToBack[0].price;
-                data.betfair.home = tmpbtdata[x-1].moneyline.home.availableToBack[0].price;
+                data.betfair.away = tmpbtdata[x-1].moneyline.away;
+                data.betfair.home = tmpbtdata[x-1].moneyline.home;
               }
 
               if (tmppsdata[y] == undefined) {
@@ -124,8 +128,8 @@ export const initSocket = (reduxStore) => {
                 data.betfair.away = '-';
                 data.betfair.home = '-';
               } else {
-                data.betfair.away = tmpbtdata[x].moneyline.away.availableToBack[0].price;
-                data.betfair.home = tmpbtdata[x].moneyline.home.availableToBack[0].price;
+                data.betfair.away = tmpbtdata[x].moneyline.away;
+                data.betfair.home = tmpbtdata[x].moneyline.home;
               }
 
               if (tmppsdata[y-1] == undefined) {
@@ -140,8 +144,8 @@ export const initSocket = (reduxStore) => {
                 data.betfair.away = '-';
                 data.betfair.home = '-';
               } else {
-                data.betfair.away = tmpbtdata[x].moneyline.away.availableToBack[0].price;
-                data.betfair.home = tmpbtdata[x].moneyline.home.availableToBack[0].price;
+                data.betfair.away = tmpbtdata[x].moneyline.away;
+                data.betfair.home = tmpbtdata[x].moneyline.home;
               }
 
               if (tmppsdata[y] == undefined) {

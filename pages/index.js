@@ -15,26 +15,20 @@ import PauseCircleOutlineOutlinedIcon from '@mui/icons-material/PauseCircleOutli
 import PlayCircleFilledWhiteOutlinedIcon from '@mui/icons-material/PlayCircleFilledWhiteOutlined';
 import Button from '@mui/material/Button';
 import { useDispatch, useSelector } from 'react-redux';
-import { Connected, Wmatch, Wodd, Wbetdata, Wstakemode } from '../modules/SocketSlice';
+import { Connected, Wmatch, Wodd, Wbetdata, SendTime } from '../modules/SocketSlice';
 import { initSocket, sendSportLeagueName, sendBetInfor } from '../modules/websocketManager';
 import store from '../modules/store'
-import { CoPresentOutlined } from "@mui/icons-material";
 
 const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stakemode = {}, _betid = '0', _btodd = {away: 0, home: 0}, _psodd = {away: 0, home: 0}, count = 0}) => {
-  const gstakemode = useSelector(Wstakemode);
   const odddata = useSelector(Wodd);
   const betdata = useSelector(Wbetdata);
   const [stakemode, setStakeMode] = useState(_stakemode);
   const [modifystakemode, setModifyStakeMode] = React.useState(false);
   const [oddlog, setOddlog] = React.useState(false);
 
-  const [diffFrom, setDiffFrom] = useState(_stakemode.from);
-  const [diffTo, setDiffTo] = useState(_stakemode.to);
-  const [stake, setStake] = useState(_stakemode.stake);
   const [max, setMax] = useState(_stakemode.max);
-  const [diffmode, setMdDiffState] = useState(_stakemode.diffmode);
-  const [betmode, setMdBetMode] = useState(_stakemode.betmode);
-  const [probability, setProbability] = useState(_stakemode.probability);
+  const [edge, setEdge] = useState(_stakemode.edge);
+  const [kellybalance, setKellybalance] = useState(_stakemode.kellybalance);
   const [runstate, setRunState] = useState(_stakemode.state);
   const [formulas, setFormula] = useState([]);
   const [equation, setEquation] = useState(_stakemode.formula);
@@ -47,26 +41,11 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
     const run = async() => {
       var ret = await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getFormula`);
       setFormula(ret.data);
-      console.log()
+      console.log('================formula', ret.data)
     } 
     run();
   }, []);
 
-
-
-  const setDiffMode = async (check) => {
-    if (check == 1)
-      setMdDiffState(1);
-    else
-      setMdDiffState(0)
-  }
-
-  const setBetMode = async (check) => {
-    if (check == 1)
-      setMdBetMode(1);
-    else
-      setMdBetMode(0)
-  }
 
   const setRun = async (check) => {
     try {
@@ -82,30 +61,23 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
   }
 
   const cancelModfy = () => {
-    setMdDiffState(stakemode.diffmode);
-    setMdBetMode(stakemode.betmode);
-    setDiffFrom(stakemode.from);
-    setDiffTo(stakemode.to);
-    setStake(stakemode.stake);
+    
     setMax(stakemode.max);
     setEquation(stakemode.formula);
-    setProbability(stakemode.probability);
+    setEdge(stakemode.edge);
     setRunState(stakemode.state);
     setModifyStakeMode(false);
   }
 
   const okModify = React.useCallback(async() => {
     var tmp = JSON.parse(JSON.stringify(stakemode));
-    tmp.diffmode = diffmode;
-    tmp.betmode = betmode;
-    tmp.from = diffFrom;
-    tmp.to = diffTo;
-    tmp.stake = stake;
+    tmp.edge = edge;
     tmp.max = max;
-    tmp.state = runstate;
+    tmp.kellybalance = kellybalance;
     tmp.formula = equation;
-    tmp.probability = probability;
-
+    tmp.state = true;
+    setRunState(true);
+    console.log('setmatchstake============>', equation)
     try {
       const result = await axios.post(process.env.NEXT_PUBLIC_APIURL + 'setMatchStakeMode', { monitId: _monitid, eventId: _eventid, stakemode: tmp });
       toast.success(`Success.`);
@@ -117,7 +89,7 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
       return;
     }
     
-  }, [diffFrom, diffTo, stake, max, diffmode, betmode, probability, max, runstate, equation])
+  }, [max, kellybalance, edge, equation])
   
   const openDetailDlg = async() => {
     
@@ -131,69 +103,79 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
 
   return (
     <div className="border px-2 text-white rounded border-green-600 bg-sky-950 hover:bg-gray-900">
-      <div className="lg:flex justify-between px-4 2xl:px-10">
+      <div className="lg:flex justify-between 2xl:px-8">
         <div className="flex text-xl pt-8">
-          <span>{_away}</span> <span className=" px-4">vs</span> <span>{_home}</span>
+          <span className="text-center">{_away}</span> <span className=" px-4">vs</span> <span className="text-center">{_home}</span>
         </div>
-        <div className="mb-9 pt-6">
-            <div className="flex justify-center items-center space-x-4 pl-52">
-              <div className="pt-0.5">Betfair</div>
-              <div className="pt-0.5">PS3838</div>
-              <div className="hover:cursor-pointer" onClick={() => openDetailDlg()}>
-                <InfoOutlinedIcon className=""></InfoOutlinedIcon>
-              </div>
+        <div className="flex">
+          <div className="mb-9 pt-6 pr-2 text-center">
+            <div className="flex">
+              <span className="w-40 sm:w-56 text-center"></span>
+              <span className="w-16 text-center">Betfair</span>
+              <span className="w-16 text-center">PS3838</span>
             </div>
-            <div className="flex justify-center items-center space-x-10">
-              <div className=" w-36 text-center">{_away}</div>
-              <div className="place-items-center">{_btodd.away}</div>
-              <div className="place-items-center">{_psodd.away}</div>
+            <div className="flex">
+              <span className="w-40 sm:w-56 text-end">{_away}</span>
+              <span className="w-16 text-center">{_btodd.away}</span>
+              <span className="w-16 text-center">{_psodd.away}</span>
             </div>
-      
-            <div className="flex justify-center items-center space-x-10">
-              <div className=" w-36 text-center" >{_home}</div>
-              <div>{_btodd.home}</div>
-              <div>{_psodd.home}</div>
+            <div className="flex">
+              <span className="w-40 sm:w-56 text-end">{_home}</span>
+              <span className="w-16 text-center">{_btodd.home}</span>
+              <span className="w-16 text-center">{_psodd.home}</span>
             </div>
+          </div>
+          <div className="hover:cursor-pointer pt-5 mr-2" onClick={() => openDetailDlg()}>
+              <InfoOutlinedIcon className=""></InfoOutlinedIcon>
+          </div>
         </div>
       </div>
-      <div className="flex pl-4 -mt-8 xl:-mt-14 space-x-4 py-4 px-4 2xl:px-10">
-        {/* <div className="flex text-center space-x-2">
-          <div className="text-end">{stakemode.state ? (stakemode.diffmode == 0 ? 'Fixed' : 'Percent'):(gstakemode.diffmode == 0 ? 'Fixed' : 'Percent')}{':'}</div>
-          <span>{stakemode.state ? (stakemode.diffmode == 0 ? `${stakemode.from}`: `${stakemode.from}%`):(gstakemode.diffmode == 0 ? `${gstakemode.from}`: `${gstakemode.from}%`)}</span>
-          <span>~</span>
-          <span>{stakemode.state ? (stakemode.diffmode == 0 ? `${stakemode.to} `: `${stakemode.to} %`):(gstakemode.diffmode == 0 ? `${gstakemode.to} `: `${gstakemode.to} %`)}</span>
-        </div> */}
-        <div className="flex text-center space-x-2">
-          <div>Stake :</div>
-          <span>{stakemode.state ? (stakemode.betmode == 0 ? `$${stakemode.stake}`: `${stakemode.stake}%`):(gstakemode.betmode == 0 ? `$${gstakemode.stake}`: `${gstakemode.stake}%`)}</span>
+      <div className="lg:flex mb-4">
+        <div className="pl-2 sm:pl-10 lg:pl-4">
+          <div className="flex pl-4 -mt-8 xl:-mt-14 space-x-2 py-4 px-1 2xl:px-10">
+            <div className="flex text-center space-x-2">
+              <span>Max :</span>
+              <span>{`$${stakemode.max}`}</span>
+            </div>
+            <div className="flex text-center space-x-2">
+              <span>Edge :</span>
+              <span>{`${stakemode.edge}%`}</span>
+            </div>
+            <div className="flex text-center space-x-2">
+              <span>Kelly Balance :</span>
+              <span>{`$${stakemode.kellybalance}`}</span>
+            </div>
+          </div>
+          <div className="md:flex pl-4 -mt-5 space-x-4 py-4 px-4 2xl:px-10">
+            <div className="flex text-center space-x-2">
+              <div className="">{'Formula:'}</div>
+              <span>{stakemode.formula}</span>
+            </div> 
+          </div>
         </div>
-        <div className="flex text-center space-x-2">
-          <div>Max :</div>
-          <span>{`$${stakemode.state ? stakemode.max : gstakemode.max}`}</span>
-        </div>
-        <div className="flex text-center space-x-2">
-          <div>Probability :</div>
-          <span>{`${stakemode.probability}%`}</span>
-        </div>
-        <div className="flex text-center space-x-2">
-          <div>Kelly Balance :</div>
-          <span>{`$${stakemode.kellybalance}`}</span>
-        </div>
-      </div>
-      <div className="md:flex pl-4 -mt-5 space-x-4 py-4 px-4 2xl:px-10">
-        <div className="flex text-center space-x-2">
-          <div className="">{'Formula:'}</div>
-          <span>{stakemode.formula}</span>
-        </div>
-        {/* <div className="flex text-center space-x-2">
-          <div>Kelly Balance :</div>
-          <span>{`$${stakemode.kellybalance}`}</span>
-        </div> */}  
-        <div className="hover:cursor-pointer pl-4" onClick={() => setModifyStakeMode(true)}>
-          <ModeEditOutlineOutlinedIcon className=""></ModeEditOutlineOutlinedIcon>
-        </div>
-        <div className="hover:cursor-pointer" onClick={() => setRun(!runstate)}>
-          {runstate ?<PauseCircleOutlineOutlinedIcon className=""></PauseCircleOutlineOutlinedIcon> : <PlayCircleFilledWhiteOutlinedIcon className=""></PlayCircleFilledWhiteOutlinedIcon>}
+        <div className="flex pt-4">
+          <div className="-mt-4 xl:-mt-14">
+            <div className="flex">
+              <span className="text-end w-40 sm:w-56"></span>
+              <span className="text-center w-24 pl-4">Amount</span>
+            </div>
+            <div className="flex">
+              <span className="text-end w-40 sm:w-56">{_away}</span>
+              <span className="text-center w-24 pl-4">{stakemode.awayamount}</span>
+            </div>
+            <div className="flex">
+              <span className="text-end w-40 sm:w-56">{_home}</span>
+              <span className="text-center w-24 pl-4">{stakemode.homeamount}</span>
+            </div>
+          </div>
+          <div className="flex items-center pl-3 lg:-mt-12">
+            <div className="hover:cursor-pointer pr-4" onClick={() => setModifyStakeMode(true)}>
+              <ModeEditOutlineOutlinedIcon className=""></ModeEditOutlineOutlinedIcon>
+            </div>
+            <div className="hover:cursor-pointer" onClick={() => setRun(!runstate)}>
+              {runstate ?<PauseCircleOutlineOutlinedIcon className=""></PauseCircleOutlineOutlinedIcon> : <PlayCircleFilledWhiteOutlinedIcon className=""></PlayCircleFilledWhiteOutlinedIcon>}
+            </div>
+          </div>
         </div>
       </div>
       <Dialog onClose={() => cancelModfy()} open={modifystakemode}>
@@ -201,54 +183,38 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
           <div className="absolute top-2 right-2 p-1 cursor-pointer hover:bg-slate-400 rounded-full" onClick={() => cancelModfy()}>
             <CloseIcon className="text-white"></CloseIcon>
           </div>
-          <div className="text-white pt-5">
-            {/* <div className="flex space-x-1 sm:space-x-3 sm:px-4 mb-2">
-              <span className="w-16 sm:w-20 text-end">{'Diff :'}</span>
-              <select className="cursor-pointer block w-22 p-1 overflow-auto text-sm text-center bg-sky-950 text-white border rounded-md" onChange={(e) => setDiffMode(e.target.value)}>
-                <option className="cursor-pointer" value={0} selected = {diffmode == 0}>Fiexd</option>
-                <option className="cursor-pointer" value={1} selected = {diffmode == 1}>Percent</option>
-              </select>
-              <input type="number" className="text-sm w-16 sm:w-20 text-center bg-sky-950 text-white border rounded-md" min="0" value={diffFrom} required onChange={(e) => setDiffFrom(e.target.value)}></input>
-              <span className="px-3 sm:px-0">~</span>
-              <input type="number" className="text-sm w-16 sm:w-20 text-center bg-sky-950 text-white border rounded-md" min="0" value={diffTo} required onChange={(e) => setDiffTo(e.target.value)}></input>
-              <span className="">{diffmode == 0 ? '':'(%)'}</span>
-            </div> */}
-            <div className="flex space-x-1 sm:space-x-3 sm:px-4 mb-2">
-              <span className="w-16 sm:w-20 text-end">{betmode == 0 ? 'Stake($) :':'Stake :'}</span>
-              {/* <select className="cursor-pointer block w-22 p-1 overflow-auto text-sm text-center bg-sky-950 text-white border rounded-md" onChange={(e) => setBetMode(e.target.value)}>
-                <option className="cursor-pointer" value={0} selected = {betmode == 0}>Fiexd</option>
-                <option className="cursor-pointer" value={1} selected = {betmode == 1}>Percent</option>
-              </select> */}
-              <div className="flex">
-                <input type="number" className="py-1 text-sm w-16 sm:w-20 text-center bg-sky-950 text-white border rounded-md" min="0" value={stake} required onChange={(e) => setStake(e.target.value)}></input>
-              </div>
-              <span className="">{betmode == 0 ? '':'(%)'}</span>
-            </div>
-            <div className="flex space-x-1 sm:space-x-3 sm:px-4 mb-2">
-              <span className="w-16 sm:w-20 text-end">{'Max($) :'}</span>
-              <div className="flex pr-4">
+          <div className="pt-5">
+            <div className="flex mb-3">
+              <span className="w-32 text-end text-white">{'Max($) :'}</span>
+              <div className="flex pl-2">
                 <input type="number" className="py-1 text-sm w-20 text-center bg-sky-950 text-white border rounded-md" min="0" value={max} required onChange={(e) => setMax(e.target.value)}></input>
               </div>
-              <span className="w-22">{'Probability :'}</span>
-              <div className="flex">
-                <input type="number" className="py-1 text-sm w-16 sm:w-20 text-center bg-sky-950 text-white border rounded-md" min="0" value={probability} required onChange={(e) => setProbability(e.target.value)}></input>
-              </div>
-              <span className="">{'(%)'}</span>
             </div>
-            <div className="flex space-x-1 sm:space-x-3 sm:px-4 mb-2">
-              <span className="sm:pl-2 w-20 sm:w-24 text-end">{'Formula :'}</span>
-              <select className="cursor-pointer block p-1 w-full overflow-auto text-sm text-center bg-sky-950 text-white border rounded-md" onChange={(e) => setEquation(e.target.value)}>
-              {formulas.map((el, index) => (
-                <option className="cursor-pointer" value={el.formula} selected = {el.formula == equation ? true: false} key = {index} >{el.formula}</option>
-              ))}
+            <div className="flex mb-3">
+              <span className="w-32 text-end text-white">{'Edge(%) :'}</span>
+              <div className="flex pl-2">
+                <input type="number" className="py-1 text-sm w-20 text-center bg-sky-950 text-white border rounded-md" min="0" value={edge} required onChange={(e) => setEdge(e.target.value)}></input>
+              </div>
+            </div>
+            <div className="flex mb-3">
+              <span className="w-32 text-end text-white">{'KellyBalance($) :'}</span>
+              <div className="flex pl-2">
+                <input type="number" className="py-1 text-sm w-20 text-center bg-sky-950 text-white border rounded-md" min="0" value={kellybalance} required onChange={(e) => setKellybalance(e.target.value)}></input>
+              </div>
+            </div>
+            <div className="flex justify-center mb-3">
+              <select className="cursor-pointer block w-60 p-1 pl-10 overflow-auto text-sm text-center bg-sky-950 text-white border rounded-md"  onChange={(el) => (setEquation(el.target.value))}>
+                {formulas.map((el, index) => (
+                  <option className="cursor-pointer" selected = {el.formula == equation} value={el.formula} key = {index}>{el.formula}</option>
+                ))}
               </select>
             </div>
           </div>
-          <div className="flex justify-center pt-2 space-x-10 sm:space-x-16">
+          <div className="flex justify-center pt-2 space-x-8">
             <Button variant="outlined"  style={{backgroundColor: "rgb(23 37 84)", border:"1px solid white", color:"white"}} onClick={() => cancelModfy()}>
               Cancel
             </Button>
-            <Button variant="outlined"  style={{backgroundColor: "rgb(23 37 84)", border:"1px solid white", color:"white"}} onClick={() => okModify()}>
+            <Button variant="outlined"  style={{backgroundColor: "rgb(23 37 84)", border:"1px solid white", color:"white", paddingLeft:"34px", paddingRight:"34px"}} onClick={() => okModify()}>
               OK
             </Button>
           </div>
@@ -299,22 +265,22 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
                   <span>{(Object.keys(betdata).length === 0 || betdata.length === 0) ? '-': betdata.state == 0 ? 'Pending' : betdata.state == 2 ? 'Win':'Lose'}</span>
                 </div>
               </div>
-              <div>
-                <div className="mb-9  pt-24">
-                  <div className="pl-44 flex space-x-3">
-                    <div className="pt-0.5">Betfair</div>
-                    <div className="pt-0.5">PS3838</div>
+              <div className="">
+                <div className="mb-9 pt-24">
+                  <div className="flex">
+                    <span className="w-36 text-center"></span>
+                    <span className="w-16 text-center">Betfair</span>
+                    <span className="w-16 text-center">PS3838</span>
                   </div>
-                  <div className="flex justify-center items-center space-x-6">
-                    <div className=" w-36 text-center">{_away}</div>
-                    <div className="place-items-center">{_btodd.away}</div>
-                    <div className="place-items-center">{_psodd.away}</div>
+                  <div className="flex">
+                    <span className="w-36 text-end">{_away}</span>
+                    <span className="w-16 text-center">{_btodd.away}</span>
+                    <span className="w-16 text-center">{_psodd.away}</span>
                   </div>
-            
-                  <div className="flex justify-center items-center space-x-6">
-                    <div className=" w-36 text-center" >{_home}</div>
-                    <div className="place-items-center">{_btodd.home}</div>
-                    <div className="place-items-center">{_psodd.home}</div>
+                  <div className="flex">
+                    <span className="w-36 text-end">{_home}</span>
+                    <span className="w-16 text-center">{_btodd.home}</span>
+                    <span className="w-16 text-center">{_psodd.home}</span>
                   </div>
                 </div>
               </div>
@@ -367,7 +333,7 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
                 ))}
               </div>
             </div>
-          </div>
+          </div> 
         </DialogContent>
 
       </Dialog>
@@ -378,6 +344,7 @@ const LeagueCard = ({_monitid = '',  _eventid = 0, _away = '', _home = '', _stak
 const Explorer = () => {
   
 // const dispatch = useDispatch();
+const sendtime = useSelector(SendTime);
 const matchData = useSelector(Wmatch);
 
 const [monitmenu, setMonitMenu] = useState([]);
@@ -448,7 +415,7 @@ const getSportString = (data) => {
     <>
       <div className="h-full">
         <Header />
-        {matchData.length != 0?<div className="text-end w-full">{matchData[0].update}</div>:<div  className="text-end w-full">NONE</div>}
+        <div className="text-end w-full">{sendtime}</div>
         <div className="bg-gradient-to-r from-green-600 to-[#233d26] min-h-screen">
           <div className="m-auto justify-center lg:flex">
             <div className="w-screen h-auto sm:h-screen border-solid border-rose-600 bg-orange-600 p-1 justify-center sm:flex">
