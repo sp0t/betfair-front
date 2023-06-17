@@ -133,6 +133,9 @@ const SportCard = ({ img = '', name = '', _monit = true, _betting = false, _play
       setTotalFund(balance.data.total);
       setMaxFund(balance.data.max);
       setAvailableFund(balance.data.available);
+      setMdMax(price.data[0] == undefined? '-' :price.data[0].max);
+      setMdEdge(price.data[0] == undefined? '-' :price.data[0].edge);
+      setMdkellybalance(price.data[0] == undefined? '-' :price.data[0].kellybalance);
     };
 
     run();
