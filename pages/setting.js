@@ -204,7 +204,7 @@ const SportCard = ({ img = '', name = '', _monit = true, _betting = false, _play
 }
 
 const okModify = React.useCallback(async() => {
-  var tmp = JSON.parse(JSON.stringify(stakemode));
+  var tmp = JSON.parse(JSON.stringify(stakemodedata));
   tmp.edge = mdedge;
   tmp.max = mdmax;
   tmp.kellybalance = mdkellybalance;
