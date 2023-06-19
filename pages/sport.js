@@ -13,14 +13,16 @@ import CloseIcon from '@mui/icons-material/Close';
 
 const Sport = () => {
   const [monitorData, setMonitorData] = useState([]);
-  const [sportBt, setSportBt] = useState({});
-  const [sportPs, setSportPs] = useState({});
-  const [sportBtname, setSportBtname] = useState('2002 Winter Olympics');
-  const [sportPsname, setSportPsname] = useState('Alpine Skiing');
-  const [leagueBt, setLeagueBt] = useState({});
-  const [leagueSetBt, setLeagueSetBt] = useState({});
-  const [leaguePs, setLeaguePs] = useState({});
-  const [leagueSetPs, setLeagueSetPs] = useState({});
+  const [sportBt, setSportBt] = useState([]);
+  const [sportPs, setSportPs] = useState([]);
+  const [sportBtID, setSportBtID] = useState(0);
+  const [sportPsID, setSportPsID] = useState(0);
+  const [sportBtname, setSportBtname] = useState('');
+  const [sportPsname, setSportPsname] = useState('');
+  const [leagueBt, setLeagueBt] = useState([]);
+  const [leagueSetBt, setLeagueSetBt] = useState([]);
+  const [leaguePs, setLeaguePs] = useState([]);
+  const [leagueSetPs, setLeagueSetPs] = useState([]);
   const [sportName, setSportName] = useState('Alpine Skiing');
   const [leagueBtids, setLeagueBtids] = useState([]);
   const [leaguePsids, setLeaguePsids] = useState([]);
@@ -34,7 +36,12 @@ const Sport = () => {
   const [leaguekyps, setLeaguekyps] = useState('');
   const [leaguekysetbt, setLeaguekysetbt] = useState('');
   const [leaguekysetps, setLeaguekysetps] = useState('');
-
+  const [marketBt, setMarketBt] = useState([]);
+  const [marketPs, setMarketPs] = useState([]);
+  const [selectmarketBt, setSelectMarketBt] = useState('');
+  const [selectmarketPs, setSelectMarketPs] = useState(0);
+  const [marketsetBt, setMarketSetBt] = useState([]);
+  const [marketsetPs, setMarketSetPs] = useState([]);
   const [modifyMonitor, setModifyMonitor] = React.useState(false);
   const [mornitorSetData, setMornitorSetData] = useState({});
   const [modifySportname, setModifySportname] = useState('');
@@ -50,34 +57,63 @@ const Sport = () => {
     return sortedObj;
   }
   
-  const filterObject = (searchkey, data) => {
-    const filteredKeys  = Object.keys(data).filter(key => key.toLowerCase().includes(searchkey.toLowerCase()));
-    const filteredObj = filteredKeys.reduce((acc, key) => {
-      acc[key] = data[key];
-      return acc;
-    }, {});
+  const filterObject = (searchkey, data, site) => {
+    var tmp = [];
+    for(var x in data) {
+      if (site == 'betfair') {
+        if (data[x].competition.name.toLowerCase().includes(searchkey.toLowerCase()))
+          tmp.push(data[x])
+      } else if (site == 'ps3838') {
+        if (data[x].name.toLowerCase().includes(searchkey.toLowerCase()))
+          tmp.push(data[x])
+      }
+    }
 
-    return filteredObj;
+    return tmp;
   } 
 
   React.useEffect(() => {
 
     const run = async () => {
 
-      var [mornitor, sport, league] = await Promise.all([
+      var [mornitor, sport] = await Promise.all([
         await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getMonitor?sport=ALL`),
-        await axios.get(process.env.NEXT_PUBLIC_APIURL + 'getSport'),
-        await axios.get(process.env.NEXT_PUBLIC_APIURL + 'getLeague')
+        await axios.get(process.env.NEXT_PUBLIC_APIURL + 'getSport')
       ])
     
       setMonitorData(mornitor.data);
-      setSportBt(sortObject(sport.data.betfair));
-      setSportPs(sortObject(sport.data.ps3838));
-      setLeagueBt(sortObject(league.data.betfair));
-      setFilterleagueBt(sortObject(league.data.betfair));
-      setLeaguePs(sortObject(league.data.ps3838['Alpine Skiing']));
-      setFilterleaguePs(sortObject(league.data.ps3838['Alpine Skiing']));
-      setSportPsname(sportNmaes[0])
+
+      if(sport.data.betfair != undefined) {
+        setSportBt(sport.data.betfair);
+        var ret = await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getLeague?site=betfair&sportid=${sport.data.betfair[0].eventType.id}`);
+        if (ret.data != undefined && ret.data.length > 0) {
+          var market = await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getMarket?site=betfair&sportid=${sport.data.betfair[0].eventType.id}&leagueid=${ret.data[0].competition.id}`);
+          if(market.data != null) {
+            setMarketBt(market.data);
+            setSelectMarketBt(market.data[0].marketType);
+          }
+          setLeagueBt(ret.data);
+          setFilterleagueBt(ret.data);
+        } 
+
+        setSportBtname(sport.data.betfair[0].eventType.name);
+        setSportBtID(sport.data.betfair[0].eventType.id);
+      }
+      if(sport.data.ps3838 != undefined) {
+        setSportPs(sport.data.ps3838.sports);
+        var ret = await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getLeague?site=ps3838&sportid=${sport.data.ps3838.sports[0].id}`);
+        if (ret.data != undefined) {
+          var market = await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getMarket?site=ps3838&sportid=${sport.data.ps3838.sports[0].id}&leagueid=${ret.data.leagues[0].id}`);
+          if(market.data != null) {
+            setMarketPs(market.data.periods);
+            setSelectMarketPs(market.data.periods[0].number);
+          }
+          setLeaguePs(ret.data.leagues);
+          setFilterleaguePs(ret.data.leagues);
+        }
+        setSportPsname(sport.data.ps3838.sports[0].name);
+        setSportPsID(sport.data.ps3838.sports[0].id);
+      }
     };
 
     run();
@@ -93,35 +129,67 @@ const Sport = () => {
   }, [sportBtname, sportPsname]);
 
   React.useEffect(() => {
-    var tmp =  JSON.parse(JSON.stringify(leagueBt));
-    setFilterleagueBt(filterObject(leaguekybt, tmp));
+    setFilterleagueBt(filterObject(leaguekybt, leagueBt, 'betfair'));
   }, [leaguekybt, leagueBt]);
 
   React.useEffect(() => {
-    var tmp =  JSON.parse(JSON.stringify(leaguePs));
-    setFilterleaguePs(filterObject(leaguekyps, tmp));
+    setFilterleaguePs(filterObject(leaguekyps, leaguePs, 'ps3838'));
   }, [leaguekyps, leaguePs]);
 
   React.useEffect(() => {
-    var tmp =  JSON.parse(JSON.stringify(leagueSetBt));
-    setFilterleagueSetBt(filterObject(leaguekysetbt, tmp));
+    setFilterleagueSetBt(filterObject(leaguekysetbt, leagueSetBt, 'betfair'));
   }, [leaguekysetbt, leagueSetBt]);
 
   React.useEffect(() => {
-    var tmp =  JSON.parse(JSON.stringify(leagueSetPs));
-    setFilterleagueSetPs(filterObject(leaguekysetps, tmp));
+    setFilterleagueSetPs(filterObject(leaguekysetps, leagueSetPs, 'ps3838'));
   }, [leaguekysetps, leagueSetPs]);
 
   const selectSportPs = async(val) => {
-    setSportPsname(val)
-    var ret =  await axios.get(process.env.NEXT_PUBLIC_APIURL + 'getLeague');
-    setLeaguePs(sortObject(ret.data.ps3838[val]));
+    var sport = JSON.parse(val);
+    setSportPsname(sport.name);
+    setSportPsID(sport.id);
+    var ret =  await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getLeague?site=ps3838&sportid=${sport.id}`);
+    if (ret.data != undefined) {
+      setLeaguePs(ret.data.leagues);
+      setFilterleaguePs(ret.data.leagues);
+
+      var market = await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getMarket?site=ps3838&sportid=${sport.id}&leagueid=${ret.data.leagues[0].id}`);
+      if(market.data != null) {
+        setMarketPs(market.data.periods);
+        setSelectMarketPs(market.data.periods[0].number);
+      }
+    } else {
+      setLeaguePs([]);
+      setFilterleaguePs([]);
+      setMarketPs([]);
+      setSelectMarketPs(0);
+    }
     setLeaguePsids([]);
     setLeaguePsname('');
   }
 
   const selectSportBt = async(val) => {
-    setSportBtname(val)
+    var sport = JSON.parse(val);
+    setSportBtname(sport.eventType.name);
+    setSportBtID(sport.eventType.id);
+    console.log('sportid = ', sport.eventType.id)
+    var ret =  await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getLeague?site=betfair&sportid=${sport.eventType.id}`);
+    if (ret.data != undefined && ret.data.length > 0) {
+      setLeagueBt(ret.data);
+      setFilterleagueBt(ret.data);
+      console.log('ret.data[0]', ret.data[0])
+
+      var market = await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getMarket?site=betfair&sportid=${sport.eventType.id}&leagueid=${ret.data[0].competition.id}`);
+      if(market.data != null) {
+        setMarketBt(market.data);
+        setSelectMarketBt(market.data[0].marketType);
+      }
+    } else {
+      setLeagueBt([]);
+      setFilterleagueBt([]);
+      setMarketBt([]);
+      setSelectMarketBt('');
+    }
     setLeagueBtids([]);
     setLeagueBtname('');
   }
@@ -129,43 +197,97 @@ const Sport = () => {
   const openModifyDialog = async(name) => {
     const retsport = await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getMonitor?sport=${name}`)
     setMornitorSetData(retsport.data[0])
-    const sportps = retsport.data[0].sites[1].sportname;
-    var retleague =  await axios.get(process.env.NEXT_PUBLIC_APIURL + 'getLeague');
-    setLeagueSetPs(sortObject(retleague.data.ps3838[sportps]));
-    setLeagueSetBt(leagueBt);
-    setFilterleagueSetPs(sortObject(retleague.data.ps3838[sportps]));
-    setFilterleagueSetBt(leagueBt);
+    const btid = retsport.data[0].sites[0].sportid;
+    const psid = retsport.data[0].sites[1].sportid;
+    const btleagueid = retsport.data[0].sites[0].competition[0];
+    const psleagueid = retsport.data[0].sites[1].competition[0];
+    var [btleague, psleague, btmarket, psmarket] = await Promise.all([
+      axios.get(`${process.env.NEXT_PUBLIC_APIURL}getLeague?site=betfair&sportid=${btid}`),
+      axios.get(`${process.env.NEXT_PUBLIC_APIURL}getLeague?site=ps3838&sportid=${psid}`),
+      axios.get(`${process.env.NEXT_PUBLIC_APIURL}getMarket?site=betfair&sportid=${btid}&leagueid=${btleagueid}`),
+      axios.get(`${process.env.NEXT_PUBLIC_APIURL}getMarket?site=ps3838&sportid=${psid}&leagueid=${psleagueid}`),
+    ])
+
+    if(btleague.data != undefined) {
+      setLeagueSetBt(btleague.data);
+      setFilterleagueSetBt(btleague.data);
+    } else {
+      setLeagueSetBt([]);
+      setFilterleagueSetBt([]);
+    }
+
+    if(psleague.data != undefined) {
+      setLeagueSetPs(psleague.data.leagues);
+      setFilterleagueSetPs(psleague.data.leagues);
+    } else {
+      setLeagueSetPs([]);
+      setFilterleagueSetPs([]);
+    }
+
+    if(btmarket.data != undefined)
+      setMarketSetBt(btmarket.data)
+    else
+      setMarketSetBt([])
+
+    if(psmarket.data.periods != undefined)
+      setMarketSetPs(psmarket.data.periods)
+    else
+      setMarketSetPs([])
     setModifySportname(name);
     setModifyMonitor(true);
   }
 
-  const checkPs = (state, value) => {
+  const checkPs = async(state, value) => {
+    var market = await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getMarket?site=ps3838&sportid=${sportPsID}&leagueid=${value.id}`);
+    if(market.data != undefined) {
+      setMarketPs(market.data.periods);
+      setSelectMarketPs(market.data.periods[0].number);
+    } else {
+      setMarketPs([]);
+      setSelectMarketPs(0);
+    }
     var tmp =  JSON.parse(JSON.stringify(leaguePsids));
-    if(state) tmp.push(leaguePs[value])
+    if(state) tmp.push(value.id)
     else {
-      const index = tmp.indexOf(leaguePs[value]);
+      const index = tmp.indexOf(value.id);
       if (index !== -1) {
         tmp.splice(index, 1);
       }
     }
     setLeaguePsids(tmp)
-    setLeaguePsname(value);
+    setLeaguePsname(value.name);
   }
 
-  const checkBt = (state, value) => {
+  const checkBt = async(state, value) => {
     var tmp =  JSON.parse(JSON.stringify(leagueBtids));
-    if(state) tmp.push(leagueBt[value])
+    var market = await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getMarket?site=betfair&sportid=${sportPsID}&leagueid=${value.id}`);
+    if(market.data != undefined) {
+      setMarketBt(market.data);
+      setSelectMarketBt(market.data[0].marketType);
+    } else {
+      setMarketBt([]);
+      setSelectMarketBt('');
+    }
+
+    if(state) tmp.push(parseInt(value.competition.id))
     else {
-      const index = tmp.indexOf(leagueBt[value]);
+      const index = tmp.indexOf(parseInt(value.competition.id));
       if (index !== -1) {
         tmp.splice(index, 1);
       }
     }
     setLeagueBtids(tmp)
-    setLeagueBtname(value)
+    setLeagueBtname(value.competition.name)
   }
 
+  const changeMornitorMarket = (market, order) => {
+    var tmp =  JSON.parse(JSON.stringify(mornitorSetData));
+    tmp.sites[order].market = market;
+
+    setMornitorSetData(tmp)
+  }
   const changeMornitorSetdata = (state, value, order, name) => {
+    console.log('id =', value, 'name=', name);
     var tmp =  JSON.parse(JSON.stringify(mornitorSetData));
     if(state) {
       tmp.sites[order].competition.push(value);
@@ -178,11 +300,13 @@ const Sport = () => {
       }
     }
 
-    setMornitorSetData(tmp)
+    console.log('============after', tmp)
 
+    setMornitorSetData(tmp)
   }
 
   const removeSport = React.useCallback(async (index, name) => {
+    console.log('name=============>', name)
     var temp = JSON.parse(JSON.stringify(monitorData));
 
     try {
@@ -237,21 +361,21 @@ const Sport = () => {
 
     var tmp = {};
     tmp.name = 'betfair';
-    tmp.sportid = sportBt[sportBtname];
+    tmp.sportid = sportBtID;
     tmp.sportname = sportBtname;
-    tmp.competition = [];
     tmp.competition = leagueBtids;
     tmp.competitionname = leagueBtname;
+    tmp.market = selectmarketBt;
 
     data.sites.push(tmp);
 
     tmp = {};
     tmp.name = 'ps3838';
-    tmp.sportid = sportPs[sportPsname];
+    tmp.sportid = sportPsID;
     tmp.sportname = sportPsname;
-    tmp.competition = [];
     tmp.competition = leaguePsids;
     tmp.competitionname = leaguePsname;
+    tmp.market = selectmarketPs;
 
     data.sites.push(tmp);
 
@@ -272,7 +396,7 @@ const Sport = () => {
       console.error(error);
     } 
 
-  },[monitorData, sportName, sportBtname, sportPsname, leagueBtids, leaguePsids, leagueBtname, leaguePsname])
+  },[monitorData, sportName, sportBtID, sportPsID, sportBtname, sportPsname, leagueBtids, leaguePsids, leagueBtname, leaguePsname, selectmarketPs, selectmarketBt])
 
   const devideString = (data) => {
     const val = data.split("-");
@@ -286,6 +410,8 @@ const Sport = () => {
       toast.warn('Please select one competetion for each site.');
       return;
     }
+
+    console.log('==============UpdateMonitor', modifySportname, mornitorSetData)
 
     try {
       await axios.post(process.env.NEXT_PUBLIC_APIURL + 'updateMonitor', { sites: mornitorSetData.sites, sport: modifySportname});
@@ -329,15 +455,15 @@ const Sport = () => {
                   </div>
               </div>
               <div className="sm:flex ">
-                <div className="h-[580px] sm:w-[320px] m-1.5 lg:m-2 border-solid border-rose-600 bg-orange-600 p-2 rounded-lg mb-4 lg:mb-0">
+                <div className="h-[550px] lg:h-[580px] sm:w-[320px] m-1.5 lg:m-2 border-solid border-rose-600 bg-orange-600 p-2 rounded-lg mb-4 lg:mb-0">
                   <div className="mb-2 text-2xl lg:text-3xl font-bold flex justify-center w-full text-purple-900 lg:mb-4">
                     <h1>Betfair</h1>
                   </div>
                   <div className="relative mb-2 lg:mb-4">
                     <select className="cursor-pointer block w-full p-1 mb-4 lg:p-2 lg:mb-6 overflow-auto text-lg text-center text-white border border-gray-300 rounded-lg bg-blue-600 focus:ring-blue-700 focus:border-blue-700 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" onChange={(e) => {selectSportBt(e.target.value)}}>
                       {
-                        Object.entries(sportBt).map(([key, value]) => (
-                          <option className="cursor-pointer" key = {value}>{key}</option>
+                        sportBt.map((el, index) => (
+                          <option className="cursor-pointer" key = {index} value = {JSON.stringify(el)}>{el.eventType.name}</option>
                         ))
                       }
                     </select>
@@ -348,28 +474,39 @@ const Sport = () => {
                     </div>
                     <input type="search" id="default-search" className="block w-full sm:pl-10 p-2 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Search leagues..." onChange={(e) => setLeaguekybt(e.target.value)} required></input>
                   </div>
-                  <div className="h-[400px] overflow-y-auto p-1 lg:p-2 bg-blue-50 rounded-lg">
-                    {
-                      Object.entries(filterleagueBt).map(([key, value]) => (
-                      <div className="justify-center p-2 mb-1 lg:mb-2 text-blue-800 rounded-lg text-base bg-orange-400 hover:bg-orange-500 dark:bg-gray-800 hover:text-blue-900 dark:text-blue-400 flex" key = {value}>
-                        <div className="flex justify-between items-center ml-2 lg:ml-4	w-full text-lg font-bold">
-                          <div className="flex items-center justify-center">{key}</div>
-                          <input className="cursor-pointer" type="checkbox" onChange={(e) => checkBt(e.target.checked, key)}/>
+                  <div className="h-[400px] bg-blue-50 rounded-lg">
+                    <div className="h-[350px] mb-2 overflow-y-auto p-1 lg:p-2 bg-blue-50 rounded-lg">
+                      {
+                        filterleagueBt.map((el, index) => (
+                        <div className="justify-center p-2 mb-1 lg:mb-2 text-blue-800 rounded-lg text-base bg-orange-400 hover:bg-orange-500 dark:bg-gray-800 hover:text-blue-900 dark:text-blue-400 flex" key = {index}>
+                          <div className="flex justify-between items-center ml-2 lg:ml-4	w-full text-lg font-bold">
+                            <div className="flex items-center justify-center">{el.competition.name}</div>
+                            <input className="cursor-pointer" type="checkbox" onChange={(e) => checkBt(e.target.checked, el)}/>
+                          </div>
                         </div>
-                      </div>
-                      ))
-                    }
+                        ))
+                      }
+                    </div>
+                    <div className="relative">
+                      <select className="cursor-pointer block w-full p-1 mb-4 lg:mb-6 overflow-auto text-lg text-center text-white border border-gray-300 rounded-lg bg-gray-600 focus:ring-blue-700 focus:border-blue-700 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" onChange={(e) => {setSelectMarketBt(e.target.value)}}>
+                        {
+                          marketBt.map((el, index) => (
+                            <option className="cursor-pointer" key = {index} value = {el.marketType}>{el.marketType}</option>
+                          ))
+                        }
+                      </select>
+                    </div>
                   </div>
                 </div>
-                <div className="h-[580px] sm:w-[320px] m-1.5 lg:m-2 border-solid border-rose-600 bg-orange-600 p-2 rounded-lg">
+                <div className="h-[550px] lg:h-[580px] sm:w-[320px] m-1.5 lg:m-2 border-solid border-rose-600 bg-orange-600 p-2 rounded-lg">
                   <div className="mb-2 text-2xl lg:text-3xl font-bold flex justify-center w-full text-purple-900 lg:mb-4">
                     <h1>PS3838</h1>
                   </div>
                   <div className="relative mb-2 lg:mb-4">
                     <select className="cursor-pointer block w-full p-1 mb-4 lg:p-2 lg:mb-6 overflow-auto text-lg text-center text-white border border-gray-300 rounded-lg bg-blue-600 focus:ring-blue-700 focus:border-blue-700 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" onChange={(e) => {selectSportPs(e.target.value)}}>
                         {
-                          Object.entries(sportPs).map(([key, value]) => (
-                            <option className="cursor-pointer" id = {value} key = {value}>{key}</option>
+                          sportPs.map((el, index) => (
+                            <option className="cursor-pointer" value={JSON.stringify(el)} key = {index}>{el.name}</option>
                           ))
                         }
                       </select>
@@ -380,17 +517,28 @@ const Sport = () => {
                     </div>
                     <input type="search" id="default-search" className="block w-full sm:pl-10 p-2 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Search leagues..." onChange={(e) => setLeaguekyps(e.target.value)} required></input>
                   </div>
-                  <div className="h-[400px] overflow-y-auto p-1 lg:p-2 bg-blue-50 rounded-lg">
-                    {
-                        Object.entries(filterleaguePs).map(([key, value]) => (
-                        <div className="justify-center p-2 mb-1 lg:mb-2 text-blue-800 rounded-lg text-base bg-orange-400 hover:bg-orange-500 dark:bg-gray-800 hover:text-blue-900 dark:text-blue-400 flex" key = {value}>
-                          <div className="flex justify-between items-center ml-2 lg:ml-4	w-full text-lg font-bold">
-                            <div className="flex items-center" >{key}</div>
-                            <input className="cursor-pointer" type="checkbox" onChange={(e) => checkPs(e.target.checked, key)}/>
+                  <div className="h-[400px] bg-blue-50 rounded-lg">
+                    <div className="h-[350px] mb-2 overflow-y-auto p-1 lg:p-2 bg-blue-50 rounded-lg">
+                      {
+                          filterleaguePs.map((el, index) => (
+                          <div className="justify-center p-2 mb-1 lg:mb-2 text-blue-800 rounded-lg text-base bg-orange-400 hover:bg-orange-500 dark:bg-gray-800 hover:text-blue-900 dark:text-blue-400 flex" key = {index}>
+                            <div className="flex justify-between items-center ml-2 lg:ml-4	w-full text-lg font-bold">
+                              <div className="flex items-center" >{el.name}</div>
+                              <input className="cursor-pointer" type="checkbox" onChange={(e) => checkPs(e.target.checked, el)}/>
+                            </div>
                           </div>
-                        </div>
-                        ))
-                      }
+                          ))
+                        }
+                    </div>
+                    <div className="relative">
+                      <select className="cursor-pointer block w-full p-1 mb-4 lg:mb-6 overflow-auto text-lg text-center text-white border border-gray-300 rounded-lg bg-gray-600 focus:ring-blue-700 focus:border-blue-700 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" onChange={(e) => {setSelectMarketPs(e.target.value)}}>
+                          {
+                            marketPs.map((el, index) => (
+                              <option className="cursor-pointer" value={el.number} key = {index}>{el.description}</option>
+                            ))
+                          }
+                        </select>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -453,17 +601,28 @@ const Sport = () => {
                   </div>
                   <input type="search" id="default-search" className="block w-full sm:pl-10 p-2 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Search leagues..." onChange={(e) => setLeaguekysetbt(e.target.value)} required></input>
                 </div>
-                <div className="h-[400px] overflow-y-auto p-1 lg:p-2 bg-blue-50 rounded-lg">
-                  {
-                    Object.entries(filterleagueSetBt).map(([key, value]) => (
-                    <div className="justify-center p-2 mb-1 lg:mb-2 text-blue-800 rounded-lg text-base bg-orange-400 hover:bg-orange-500 dark:bg-gray-800 hover:text-blue-900 dark:text-blue-400 flex" key = {value}>
-                      <div className="flex justify-between items-center ml-2 lg:ml-4	w-full text-lg font-bold">
-                        <div className="flex items-center justify-center">{key}</div>
-                        <input className="cursor-pointer" type="checkbox" checked = {mornitorSetData.sites[0].competition.includes(value)} onChange={(e) =>changeMornitorSetdata(e.target.checked, value, 0, key)}/>
+                <div className="h-[400px] bg-blue-50 rounded-lg">
+                  <div className="h-[360px] overflow-y-auto p-1 lg:p-2 bg-blue-50 rounded-lg">
+                    {
+                      filterleagueSetBt.map((el, index) => (
+                      <div className="justify-center p-2 mb-1 lg:mb-2 text-blue-800 rounded-lg text-base bg-orange-400 hover:bg-orange-500 dark:bg-gray-800 hover:text-blue-900 dark:text-blue-400 flex" key = {index}>
+                        <div className="flex justify-between items-center ml-2 lg:ml-4	w-full text-lg font-bold">
+                          <div className="flex items-center justify-center">{el.competition.name}</div>
+                          <input className="cursor-pointer" type="checkbox" checked = {mornitorSetData.sites[0].competition.includes(parseInt(el.competition.id))} onChange={(e) =>changeMornitorSetdata(e.target.checked, parseInt(el.competition.id), 0, el.competition.name)}/>
+                        </div>
                       </div>
-                    </div>
-                    ))
-                  }
+                      ))
+                    }
+                  </div>
+                  <div className="relative">
+                        <select className="cursor-pointer block w-full p-1 mb-4 lg:mb-6 overflow-auto text-lg text-center text-white border border-gray-300 rounded-lg bg-gray-600 focus:ring-blue-700 focus:border-blue-700 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" onChange={(e) => {changeMornitorMarket(e.target.value, 0)}}>
+                          {
+                            marketsetBt.map((el, index) => (
+                              <option className="cursor-pointer" key = {index} value = {el.marketType} selected={el.marketType == mornitorSetData.sites[0].market}>{el.marketType}</option>
+                            ))
+                          }
+                        </select>
+                  </div>
                 </div>
               </div>
               <div className="h-[520px] sm:w-[320px] m-1.5 lg:m-2 border-solid border-rose-600 bg-orange-600 p-2 rounded-lg">
@@ -476,17 +635,28 @@ const Sport = () => {
                   </div>
                   <input type="search" id="default-search" className="block w-full sm:pl-10 p-2 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Search leagues..." onChange={(e) => setLeaguekysetps(e.target.value)} required></input>
                 </div>
-                <div className="h-[400px] overflow-y-auto p-1 lg:p-2 bg-blue-50 rounded-lg">
-                  {
-                      Object.entries(filterleagueSetPs).map(([key, value]) => (
-                      <div className="justify-center p-2 mb-1 lg:mb-2 text-blue-800 rounded-lg text-base bg-orange-400 hover:bg-orange-500 dark:bg-gray-800 hover:text-blue-900 dark:text-blue-400 flex" key = {value}>
-                        <div className="flex justify-between items-center ml-2 lg:ml-4	w-full text-lg font-bold">
-                          <div className="flex items-center" >{key}</div>
-                          <input className="cursor-pointer" type="checkbox" checked = {mornitorSetData.sites[1].competition.includes(value)} onChange={(e) =>changeMornitorSetdata(e.target.checked, value, 1, key)}/>
+                <div className="h-[400px] bg-blue-50 rounded-lg">
+                  <div className="h-[360px] overflow-y-auto p-1 lg:p-2 bg-blue-50 rounded-lg">
+                    {
+                        filterleagueSetPs.map((el, index) => (
+                        <div className="justify-center p-2 mb-1 lg:mb-2 text-blue-800 rounded-lg text-base bg-orange-400 hover:bg-orange-500 dark:bg-gray-800 hover:text-blue-900 dark:text-blue-400 flex" key = {index}>
+                          <div className="flex justify-between items-center ml-2 lg:ml-4	w-full text-lg font-bold">
+                            <div className="flex items-center" >{el.name}</div>
+                            <input className="cursor-pointer" type="checkbox" checked = {mornitorSetData.sites[1].competition.includes(el.id)} onChange={(e) =>changeMornitorSetdata(e.target.checked, el.id, 1, el.name)}/>
+                          </div>
                         </div>
-                      </div>
-                      ))
-                    }
+                        ))
+                      }
+                  </div>
+                  <div className="relative">
+                    <select className="cursor-pointer block w-full p-1 mb-4 lg:mb-6 overflow-auto text-lg text-center text-white border border-gray-300 rounded-lg bg-gray-600 focus:ring-blue-700 focus:border-blue-700 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" onChange={(e) => {changeMornitorMarket(e.target.value, 0)}}>
+                        {
+                          marketsetPs.map((el, index) => (
+                            <option className="cursor-pointer" value={el.number} key = {index} selected={el.number == mornitorSetData.sites[1].market}>{el.description}</option>
+                          ))
+                        }
+                      </select>
+                  </div>
                 </div>
               </div>
             </div>
