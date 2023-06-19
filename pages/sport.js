@@ -237,48 +237,51 @@ const Sport = () => {
     setModifyMonitor(true);
   }
 
-  const checkPs = async(state, value) => {
-    var market = await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getMarket?site=ps3838&sportid=${sportPsID}&leagueid=${value.id}`);
-    if(market.data != undefined) {
-      setMarketPs(market.data.periods);
-      setSelectMarketPs(market.data.periods[0].number);
-    } else {
-      setMarketPs([]);
-      setSelectMarketPs(0);
-    }
-    var tmp =  JSON.parse(JSON.stringify(leaguePsids));
-    if(state) tmp.push(value.id)
-    else {
-      const index = tmp.indexOf(value.id);
-      if (index !== -1) {
-        tmp.splice(index, 1);
+  const checkPs = React.useCallback(
+    async(state, value) => {
+      var market = await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getMarket?site=ps3838&sportid=${sportPsID}&leagueid=${value.id}`);
+      if(market.data != undefined) {
+        setMarketPs(market.data.periods);
+        setSelectMarketPs(market.data.periods[0].number);
+      } else {
+        setMarketPs([]);
+        setSelectMarketPs(0);
       }
-    }
-    setLeaguePsids(tmp)
-    setLeaguePsname(value.name);
-  }
-
-  const checkBt = async(state, value) => {
-    var tmp =  JSON.parse(JSON.stringify(leagueBtids));
-    var market = await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getMarket?site=betfair&sportid=${sportPsID}&leagueid=${value.competition.id}`);
-    if(market.data != undefined) {
-      setMarketBt(market.data);
-      setSelectMarketBt(market.data[0].marketType);
-    } else {
-      setMarketBt([]);
-      setSelectMarketBt('');
-    }
-
-    if(state) tmp.push(parseInt(value.competition.id))
-    else {
-      const index = tmp.indexOf(parseInt(value.competition.id));
-      if (index !== -1) {
-        tmp.splice(index, 1);
+      var tmp =  JSON.parse(JSON.stringify(leaguePsids));
+      if(state) tmp.push(value.id)
+      else {
+        const index = tmp.indexOf(value.id);
+        if (index !== -1) {
+          tmp.splice(index, 1);
+        }
       }
-    }
-    setLeagueBtids(tmp)
-    setLeagueBtname(value.competition.name)
-  }
+      setLeaguePsids(tmp)
+      setLeaguePsname(value.name);
+    }, [sportPsID, leaguePsids]
+  ) 
+
+  const checkBt = React.useCallback(
+    async(state, value) => {
+      var tmp =  JSON.parse(JSON.stringify(leagueBtids));
+      var market = await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getMarket?site=betfair&sportid=${sportBtID}&leagueid=${value.competition.id}`);
+      if(market.data != undefined) {
+        setMarketBt(market.data);
+        setSelectMarketBt(market.data[0].marketType);
+      } else {
+        setMarketBt([]);
+        setSelectMarketBt('');
+      }
+  
+      if(state) tmp.push(parseInt(value.competition.id))
+      else {
+        const index = tmp.indexOf(parseInt(value.competition.id));
+        if (index !== -1) {
+          tmp.splice(index, 1);
+        }
+      }
+      setLeagueBtids(tmp)
+      setLeagueBtname(value.competition.name)
+  }, [sportBtID, leagueBtids]) 
 
   const changeMornitorMarket = (market, order) => {
     var tmp =  JSON.parse(JSON.stringify(mornitorSetData));
