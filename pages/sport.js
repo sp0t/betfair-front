@@ -260,7 +260,7 @@ const Sport = () => {
 
   const checkBt = async(state, value) => {
     var tmp =  JSON.parse(JSON.stringify(leagueBtids));
-    var market = await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getMarket?site=betfair&sportid=${sportPsID}&leagueid=${value.id}`);
+    var market = await axios.get(`${process.env.NEXT_PUBLIC_APIURL}getMarket?site=betfair&sportid=${sportPsID}&leagueid=${value.competition.id}`);
     if(market.data != undefined) {
       setMarketBt(market.data);
       setSelectMarketBt(market.data[0].marketType);
